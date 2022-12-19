@@ -3,7 +3,7 @@ from urls import send_request
 
 
 def parse_required_player_info(data: Dict) -> Dict[str, Any]:
-    """Собиарет основную информацию об аккаунте"""
+    """Собирает основную информацию об аккаунте"""
 
     parsed_data = {
         'player_id': data['player_id'],
@@ -50,19 +50,21 @@ def parse_required_stats(data: Dict) -> Dict[str, Any]:
         'mvps': mvps,
         'avg_kpr': avg_kpr,
         'avg_spr': avg_spr,
-        'avg_rmk': avg_rmk
+        'avg_rmk': avg_rmk,
+        'avg_kills': round(kills_count / int(data['lifetime']['Matches']))
     }
     return parsed_data
 
 
 def calculate_rating_1_per_match(match_stats: Dict, full_statistic: Dict) -> float:
-    """Расчитывает рейтинг 1.0 за карту"""
+    """Рассчитывает рейтинг 1.0 за карту"""
 
     kill_rating = match_stats['kills'] / match_stats['rounds'] / full_statistic['avg_kpr']
     survival_rating = (match_stats['rounds'] - match_stats['deaths']) / match_stats['rounds'] / full_statistic['avg_spr']
     rmk_rating = (match_stats['single_kills'] + match_stats['double_kills'] * 4 + match_stats['triple_kills'] * 9 +
                  match_stats['quadro_kills'] * 16 + match_stats['aces'] * 25) / match_stats['rounds'] / full_statistic['avg_rmk']
     rating_1 = round((kill_rating + 0.7 * survival_rating + rmk_rating) / 2.7, 2)
+
     return rating_1
 
 
@@ -81,7 +83,8 @@ def get_player_stats_in_match(data: Dict, player_id: str, full_statistic: Dict) 
                                   / int(data['rounds'][0]['round_stats']['Rounds']),
                 'kills': int(player['player_stats']['Kills']),
                 'deaths': int(player['player_stats']['Deaths']),
-                'rounds': int(data['rounds'][0]['round_stats']['Rounds'])
+                'rounds': int(data['rounds'][0]['round_stats']['Rounds']),
+                'K/D': round(int(player['player_stats']['Kills']) / int(player['player_stats']['Deaths']), 2)
              }
              match_stats['double_kills'] = round((match_stats['kills'] -
                                                   match_stats['aces'] * 5 -
@@ -101,12 +104,15 @@ def get_player_stats_in_match(data: Dict, player_id: str, full_statistic: Dict) 
 def parse_matches_data(data: Dict, player_id: str, full_statistic: Dict, number: int) -> Dict[str, Any]:
     """Собирает общую информацию за один матч"""
 
-    print(f'Обрабатывается матч № {number + 1}...')
+    print(f'Обрабатывается матч № {number + 1}... id {data["rounds"][0]["match_id"]}')
     parsed_data = {
         'match_id': data['rounds'][0]['match_id'],
         'map': data['rounds'][0]['round_stats']['Map'],
     }
-    return parsed_data | get_player_stats_in_match(data, player_id, full_statistic)
+
+    player_stats_in_match = get_player_stats_in_match(data, player_id, full_statistic)
+    if player_stats_in_match:
+        return parsed_data | get_player_stats_in_match(data, player_id, full_statistic)
 
 
 def calculate_avg_rating_1(matches_stats: List[Dict]):
@@ -118,17 +124,18 @@ def is_wingman_mode(match) -> bool:
     """Проверяет мод в матче"""
     return True if match['game_mode'] == 'Wingman' else False
 
+
 def collect_player_info(urls: List[Tuple], player_id: str) -> Dict:
     parsed_player_data = {}
 
     for url in urls:
 
-        # Статистика за все время
+        # статистика за все время
         if url[1] == 'csgo_stats':
             print('Обрабатывается общая статистика')
             parsed_player_data['stats'] = parse_required_stats(send_request(url[0]))
 
-        # истрия матчей
+        # история матчей
         elif url[1] == 'match_history':
             matches_ids = []
             # получение id всех матчей
@@ -136,16 +143,19 @@ def collect_player_info(urls: List[Tuple], player_id: str) -> Dict:
                 matches_ids.extend(match['match_id'] for match in send_request(url[0] + f'&offset={i * 100}')['items']
                                    if not is_wingman_mode(match))
 
-            parsed_player_data['matches'] = [parse_matches_data(send_request(f'/matches/{match_id}/stats'),
-                                                                player_id,
-                                                                parsed_player_data['stats'],
-                                                                number)
-                                             for number, match_id in enumerate(matches_ids)]
+            parsed_player_data['matches'] = []
+            for number, match_id in enumerate(matches_ids):
+                match_data = parse_matches_data(send_request(f'/matches/{match_id}/stats'),
+                                                player_id,
+                                                parsed_player_data['stats'],
+                                                number)
+                if match_data:
+                    parsed_player_data['matches'].append(match_data)
 
-        # ифнормация об faceit аккаунте
+        # информация об faceit аккаунте
         else:
             print('Обрабатывается информация об аккаунте')
             parsed_player_data['player'] = parse_required_player_info(send_request(url[0]))
 
-    parsed_player_data['stats']['rating_1'] = calculate_avg_rating_1(parsed_player_data['matches'])
+    # parsed_player_data['stats']['rating_1'] = calculate_avg_rating_1(parsed_player_data['matches'])
     return parsed_player_data
