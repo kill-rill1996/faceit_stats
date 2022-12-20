@@ -13,6 +13,7 @@ def get_faciet_id(nickname: str) -> str:
 
 
 def write_player_info_in_file(data: Dict) -> bool:
+    """Записывает полную статистику игрока в json файл в формате nickname.json"""
     try:
         with open(f'players_info/{data["player"]["nickname_faceit"]}.json', 'w') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
@@ -23,6 +24,7 @@ def write_player_info_in_file(data: Dict) -> bool:
 
 
 def read_players_nickname_from_file(file_name: str = PLAYERS_LIST) -> List[str]:
+    """Получает перечень игроков из указанного файла"""
     try:
         with open(f'{file_name}', 'r') as f:
             data = f.read().split('\n')

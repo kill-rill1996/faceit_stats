@@ -142,13 +142,14 @@ def collect_player_info(urls: List[Tuple], player_id: str) -> Dict:
             for i in range(parsed_player_data['stats']['matches_count'] // 100 + 1):
                 matches_ids.extend(match['match_id'] for match in send_request(url[0] + f'&offset={i * 100}')['items']
                                    if not is_wingman_mode(match))
-
+            # формирование необходимых данных из всех матчей
             parsed_player_data['matches'] = []
             for number, match_id in enumerate(matches_ids):
                 match_data = parse_matches_data(send_request(f'/matches/{match_id}/stats'),
                                                 player_id,
                                                 parsed_player_data['stats'],
                                                 number)
+                # проверка на наличие данных полученных из матча
                 if match_data:
                     parsed_player_data['matches'].append(match_data)
 
