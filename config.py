@@ -13,4 +13,7 @@ HEADERS = {
 DOMEN = 'https://open.faceit.com/data/v4'
 
 PLAYERS_LIST = 'players.txt'
+PLAYERS_FULL_STATISTIC_DIR = 'players_info'
+PLAYERS_NEW_STATS_DIR = 'players_new_info'
 
+CHECK_UPDATE_PERIOD = 1  # days

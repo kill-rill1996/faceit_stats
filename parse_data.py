@@ -121,8 +121,25 @@ def calculate_avg_rating_1(matches_stats: List[Dict]):
 
 
 def is_wingman_mode(match) -> bool:
-    """Проверяет мод в матче"""
+    """Проверяет являлся ли матч 'напарниками'"""
     return True if match['game_mode'] == 'Wingman' else False
+
+
+def collect_all_matches_stats(matches_ids: List[str], player_faceit_id: str, player_full_statistic: Dict) -> List[Dict]:
+    """Собирает статистику по каждому матчу и рассчитывает для него рейтинг 1.0 (с учетом всей статистии игрока.
+    Возвращает [{}, {}, {}...]
+    """
+    matches_stats = []
+    # формирование необходимых данных из всех матчей
+    for number, match_id in enumerate(matches_ids):
+        match_data = parse_matches_data(send_request(f'/matches/{match_id}/stats'),
+                                        player_faceit_id,
+                                        player_full_statistic,
+                                        number)
+        # проверка на наличие данных полученных из матча
+        if match_data:
+            matches_stats.append(match_data)
+    return matches_stats
 
 
 def collect_player_info(urls: List[Tuple], player_id: str) -> Dict:
@@ -137,21 +154,13 @@ def collect_player_info(urls: List[Tuple], player_id: str) -> Dict:
 
         # история матчей
         elif url[1] == 'match_history':
-            matches_ids = []
             # получение id всех матчей
+            matches_ids = []
             for i in range(parsed_player_data['stats']['matches_count'] // 100 + 1):
                 matches_ids.extend(match['match_id'] for match in send_request(url[0] + f'&offset={i * 100}')['items']
                                    if not is_wingman_mode(match))
-            # формирование необходимых данных из всех матчей
-            parsed_player_data['matches'] = []
-            for number, match_id in enumerate(matches_ids):
-                match_data = parse_matches_data(send_request(f'/matches/{match_id}/stats'),
-                                                player_id,
-                                                parsed_player_data['stats'],
-                                                number)
-                # проверка на наличие данных полученных из матча
-                if match_data:
-                    parsed_player_data['matches'].append(match_data)
+            # получение статистики по каждому матчу
+            parsed_player_data['matches'] = collect_all_matches_stats(matches_ids, player_id, parsed_player_data['stats'])
 
         # информация об faceit аккаунте
         else:
