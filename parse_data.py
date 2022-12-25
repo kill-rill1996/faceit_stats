@@ -74,29 +74,32 @@ def get_player_stats_in_match(data: Dict, player_id: str, full_statistic: Dict) 
     match_stats = {}
     for player in data['rounds'][0]['teams'][0]['players'] + data['rounds'][0]['teams'][1]['players']:
         if player['player_id'] == player_id:
-             match_stats = {
+            match_stats = {
                 'aces': int(player['player_stats']["Penta Kills"]),
                 'quadro_kills': int(player['player_stats']["Quadro Kills"]),
                 'triple_kills': int(player['player_stats']["Triple Kills"]),
                 'kill/round': float(player['player_stats']['K/R Ratio']),
-                'survive/round': (int(data['rounds'][0]['round_stats']['Rounds']) - int(player['player_stats']['Deaths']))
-                                  / int(data['rounds'][0]['round_stats']['Rounds']),
+                'survive/round': (int(data['rounds'][0]['round_stats']['Rounds']) - int(
+                    player['player_stats']['Deaths']))
+                                 / int(data['rounds'][0]['round_stats']['Rounds']),
                 'kills': int(player['player_stats']['Kills']),
-                'deaths': int(player['player_stats']['Deaths']),
+                'deaths': int(player['player_stats']['Deaths']) if int(player['player_stats']['Deaths']) != 0 else 1,
                 'rounds': int(data['rounds'][0]['round_stats']['Rounds']),
-                'K/D': round(int(player['player_stats']['Kills']) / int(player['player_stats']['Deaths']), 2)
-             }
-             match_stats['double_kills'] = round((match_stats['kills'] -
+            }
+
+            match_stats['K/D'] = round(int(player['player_stats']['Kills']) / match_stats['deaths'], 2)
+
+            match_stats['double_kills'] = round((match_stats['kills'] -
                                                   match_stats['aces'] * 5 -
                                                   match_stats['quadro_kills'] * 4 -
                                                   match_stats['triple_kills'] * 3) * 0.18
                                                  )
-             match_stats['single_kills'] = match_stats['kills'] - match_stats['aces'] * 5 - \
+            match_stats['single_kills'] = match_stats['kills'] - match_stats['aces'] * 5 - \
                                            match_stats['quadro_kills'] * 4 - \
                                            match_stats['triple_kills'] * 3 -\
                                            match_stats['double_kills'] * 2
 
-             match_stats['rating_1'] = calculate_rating_1_per_match(match_stats, full_statistic)
+            match_stats['rating_1'] = calculate_rating_1_per_match(match_stats, full_statistic)
 
     return match_stats
 
