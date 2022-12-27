@@ -113,6 +113,7 @@ def parse_matches_data(data: Dict, player_id: str, full_statistic: Dict, number:
         'map': data['rounds'][0]['round_stats']['Map'],
     }
 
+    # Почему два раза вызывается функция???
     player_stats_in_match = get_player_stats_in_match(data, player_id, full_statistic)
     if player_stats_in_match:
         return parsed_data | get_player_stats_in_match(data, player_id, full_statistic)
