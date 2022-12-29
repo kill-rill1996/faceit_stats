@@ -56,7 +56,6 @@ def get_last_matches_stats(faceit_id, request_matches_count: int = 20):
                 matches = matches[:request_matches_count % 100]
 
             matches_ids.extend(matches)
-        print(len(matches_ids))
     else:
         url = f'/players/{faceit_id}/history?game=csgo&limit={request_matches_count}'
         matches_ids.extend(match['match_id'] for match in send_request(url)['items'] if not is_wingman_mode(match))
@@ -81,8 +80,8 @@ def main():
         print(f'Обрабатывается игрок {nickname}')
         faciet_id = get_faciet_id(nickname)
         if faciet_id:
-            # player_info = collect_player_info(create_urls(faciet_id), player_id=faciet_id)
-            # write_player_info_in_file(player_info, directory=PLAYERS_FULL_STATISTIC_DIR)
+            player_info = collect_player_info(create_urls(faciet_id), player_id=faciet_id)
+            write_player_info_in_file(player_info, directory=PLAYERS_FULL_STATISTIC_DIR)
             get_last_matches_stats(faciet_id, 135)
 
 
