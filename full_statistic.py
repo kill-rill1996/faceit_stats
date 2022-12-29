@@ -5,6 +5,7 @@ from urls import send_request, create_urls
 from parse_data import collect_player_info, is_wingman_mode, collect_all_matches_stats, parse_required_stats, \
     parse_required_player_info
 from config import PLAYERS_LIST, PLAYERS_FULL_STATISTIC_DIR
+from database.database import create_db
 from custom_exceptions import PlayerInfoException
 
 
@@ -76,6 +77,7 @@ def get_last_matches_stats(faceit_id, request_matches_count: int = 20):
 
 
 def main():
+    create_db()
     for nickname in read_players_nickname_from_file():
         print(f'Обрабатывается игрок {nickname}')
         faciet_id = get_faciet_id(nickname)

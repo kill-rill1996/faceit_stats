@@ -6,9 +6,9 @@ def parse_required_player_info(data: Dict) -> Dict[str, Any]:
     """Собирает основную информацию об аккаунте"""
 
     parsed_data = {
-        'player_id': data['player_id'],
-        'nickname_faceit': data['nickname'],
-        'nickname_steam': data['games']['csgo']['game_player_name'],
+        'faceit_id': data['player_id'],
+        'faceit_nickname': data['nickname'],
+        'steam_nickname': data['games']['csgo']['game_player_name'],
         'avatar': data['avatar'],
         'country': data['country'],
     }
@@ -36,10 +36,10 @@ def parse_required_stats(data: Dict) -> Dict[str, Any]:
         'avg_kd': float(data['lifetime']['Average K/D Ratio']),
         'matches_count': int(data['lifetime']['Matches']),
         'rounds_count': rounds_count,
-        'avg_hs': int(data['lifetime']["Average Headshots %"]),
-        'wins': int(data['lifetime']["Wins"]),
+        'avg_hs_percent': int(data['lifetime']["Average Headshots %"]),
+        'wins_count': int(data['lifetime']["Wins"]),
         'hs_count': headshots_count,
-        'win_rate': int(data['lifetime']["Win Rate %"]),
+        'winrate': int(data['lifetime']["Win Rate %"]),
         'kills_count': kills_count,
         'deaths_count': deaths_count,
         'aces': aces,
@@ -78,16 +78,19 @@ def get_player_stats_in_match(data: Dict, player_id: str, full_statistic: Dict) 
                 'aces': int(player['player_stats']["Penta Kills"]),
                 'quadro_kills': int(player['player_stats']["Quadro Kills"]),
                 'triple_kills': int(player['player_stats']["Triple Kills"]),
-                'kill/round': float(player['player_stats']['K/R Ratio']),
-                'survive/round': (int(data['rounds'][0]['round_stats']['Rounds']) - int(
+                'kr': float(player['player_stats']['K/R Ratio']),
+                'sr': (int(data['rounds'][0]['round_stats']['Rounds']) - int(
                     player['player_stats']['Deaths']))
                                  / int(data['rounds'][0]['round_stats']['Rounds']),
                 'kills': int(player['player_stats']['Kills']),
                 'deaths': int(player['player_stats']['Deaths']) if int(player['player_stats']['Deaths']) != 0 else 1,
                 'rounds': int(data['rounds'][0]['round_stats']['Rounds']),
+                'hs_percent': int(player['player_stats']["Headshots %"]),
+                'hs_count': int(player['player_stats']["Headshots"]),
+                'mvps': int(player['player_stats']["MVPs"])
             }
 
-            match_stats['K/D'] = round(int(player['player_stats']['Kills']) / match_stats['deaths'], 2)
+            match_stats['kd'] = round(int(player['player_stats']['Kills']) / match_stats['deaths'], 2)
 
             match_stats['double_kills'] = round((match_stats['kills'] -
                                                   match_stats['aces'] * 5 -
