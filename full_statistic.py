@@ -23,11 +23,11 @@ def get_faciet_id(nickname: str) -> str:
 def write_player_info_in_file(data: Dict, directory: str) -> bool:
     """Записывает полную статистику игрока в json файл в формате nickname.json"""
     try:
-        with open(f'{directory}/{data["player"]["nickname_faceit"]}.json', 'w') as f:
+        with open(f'{directory}/{data["player"]["faceit_nickname"]}.json', 'w') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         return True
     except Exception as e:
-        print(f'Произошла ошибка при записи игрока {data["player"]["nickname_faceit"]} в файл')
+        print(f'Произошла ошибка при записи игрока {data["player"]["faceit_nickname"]} в файл')
         print(e)
         return False
 
@@ -77,14 +77,29 @@ def get_last_matches_stats(faceit_id, request_matches_count: int = 20):
 
 
 def main():
-    create_db()
+    # create_db()
     for nickname in read_players_nickname_from_file():
         print(f'Обрабатывается игрок {nickname}')
         faciet_id = get_faciet_id(nickname)
         if faciet_id:
             player_info = collect_player_info(create_urls(faciet_id), player_id=faciet_id)
             write_player_info_in_file(player_info, directory=PLAYERS_FULL_STATISTIC_DIR)
-            get_last_matches_stats(faciet_id, 135)
+            # get_last_matches_stats(faciet_id, 135)
+
+
+def get_avg_stats():
+    data = {'avg_kpr': [],
+            'avg_spr': [],
+            'avg_rmk': []}
+    for player_nickname in read_players_nickname_from_file():
+        data['avg_kpr'].append(parse_required_stats(send_request(f'/players/{get_faciet_id(player_nickname)}/stats/csgo'))['avg_kpr'])
+        data['avg_spr'].append(parse_required_stats(send_request(f'/players/{get_faciet_id(player_nickname)}/stats/csgo'))['avg_spr'])
+        data['avg_rmk'].append(parse_required_stats(send_request(f'/players/{get_faciet_id(player_nickname)}/stats/csgo'))['avg_rmk'])
+    data['avg_kpr'] = sum(data['avg_kpr']) / len(data['avg_kpr'])
+    data['avg_spr'] = sum(data['avg_spr']) / len(data['avg_spr'])
+    data['avg_rmk'] = sum(data['avg_rmk']) / len(data['avg_rmk'])
+    with open('avg_stats/avg_stats.json', 'w') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
 
 if __name__ == '__main__':

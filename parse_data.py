@@ -1,4 +1,6 @@
 from typing import Dict, Any, List, Tuple
+
+import config
 from urls import send_request
 
 
@@ -56,13 +58,13 @@ def parse_required_stats(data: Dict) -> Dict[str, Any]:
     return parsed_data
 
 
-def calculate_rating_1_per_match(match_stats: Dict, full_statistic: Dict) -> float:
+def calculate_rating_1_per_match(match_stats: Dict) -> float:
     """Рассчитывает рейтинг 1.0 за карту"""
 
-    kill_rating = match_stats['kills'] / match_stats['rounds'] / full_statistic['avg_kpr']
-    survival_rating = (match_stats['rounds'] - match_stats['deaths']) / match_stats['rounds'] / full_statistic['avg_spr']
+    kill_rating = match_stats['kills'] / match_stats['rounds'] / config.AVG_KPR
+    survival_rating = (match_stats['rounds'] - match_stats['deaths']) / match_stats['rounds'] / config.AVG_SPR
     rmk_rating = (match_stats['single_kills'] + match_stats['double_kills'] * 4 + match_stats['triple_kills'] * 9 +
-                 match_stats['quadro_kills'] * 16 + match_stats['aces'] * 25) / match_stats['rounds'] / full_statistic['avg_rmk']
+                 match_stats['quadro_kills'] * 16 + match_stats['aces'] * 25) / match_stats['rounds'] / config.AVG_RMK
     rating_1 = round((kill_rating + 0.7 * survival_rating + rmk_rating) / 2.7, 2)
 
     return rating_1
@@ -102,8 +104,7 @@ def get_player_stats_in_match(data: Dict, player_id: str, full_statistic: Dict) 
                                            match_stats['triple_kills'] * 3 -\
                                            match_stats['double_kills'] * 2
 
-            match_stats['rating_1'] = calculate_rating_1_per_match(match_stats, full_statistic)
-
+            match_stats['rating_1'] = calculate_rating_1_per_match(match_stats)
     return match_stats
 
 
