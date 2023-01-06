@@ -5,7 +5,6 @@ from urls import send_request, create_urls
 from parse_data import collect_player_info, is_wingman_mode, collect_all_matches_stats, parse_required_stats, \
     parse_required_player_info
 from config import PLAYERS_LIST, PLAYERS_FULL_STATISTIC_DIR
-from database.database import create_db
 from custom_exceptions import PlayerInfoException
 
 
@@ -76,17 +75,6 @@ def get_last_matches_stats(faceit_id, request_matches_count: int = 20):
     write_player_info_in_file(parsed_player_data, 'players_last_matches')
 
 
-def main():
-    # create_db()
-    for nickname in read_players_nickname_from_file():
-        print(f'Обрабатывается игрок {nickname}')
-        faciet_id = get_faciet_id(nickname)
-        if faciet_id:
-            player_info = collect_player_info(create_urls(faciet_id), player_id=faciet_id)
-            write_player_info_in_file(player_info, directory=PLAYERS_FULL_STATISTIC_DIR)
-            # get_last_matches_stats(faciet_id, 135)
-
-
 def get_avg_stats():
     data = {'avg_kpr': [],
             'avg_spr': [],
@@ -103,4 +91,10 @@ def get_avg_stats():
 
 
 if __name__ == '__main__':
-    main()
+    # get_avg_stats()
+    for nickname in read_players_nickname_from_file():
+        print(f'Обрабатывается игрок {nickname}')
+        faciet_id = get_faciet_id(nickname)
+        if faciet_id:
+            player_info = collect_player_info(create_urls(faciet_id), player_id=faciet_id)
+            write_player_info_in_file(player_info, directory=PLAYERS_FULL_STATISTIC_DIR)

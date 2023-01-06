@@ -32,8 +32,11 @@ def add_to_db_matches(session: Sa_session,  data: List[Dict], faceit_id: str) ->
 def add_to_database(data: Dict) -> None:
     with Session() as session:
         print('Запись в базу данных...')
+        # запись в базу данных информации об аккаунте
         add_to_db_player_info(session, data['player'])
+        # запись в базу данных статистики общей
         add_to_db_player_stats(session, data['stats'], data['player']['faceit_id'])
+        # запись в базу данных матчей игрока
         add_to_db_matches(session, data['matches'], data['player']['faceit_id'])
     print('Данные записаны.')
 
