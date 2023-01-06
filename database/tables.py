@@ -55,7 +55,7 @@ class Match(Base):
     __tablename__ = 'matches'
 
     id = Column(Integer, primary_key=True)
-    match_id = Column(String, unique=True, index=True)
+    match_id = Column(String, index=True)
     map = Column(String)
     rounds = Column(Integer)
     kills = Column(Integer)

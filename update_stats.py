@@ -1,11 +1,14 @@
 import json
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union
 from datetime import datetime, timedelta
 
-from full_statistic import read_players_nickname_from_file, get_faciet_id, write_player_info_in_file
 from parse_data import is_wingman_mode, parse_required_stats, collect_all_matches_stats, parse_required_player_info
 from urls import send_request, create_urls
 from config import PLAYERS_FULL_STATISTIC_DIR, PLAYERS_NEW_STATS_DIR, CHECK_UPDATE_PERIOD
+from database.database import Session
+from database.service import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, \
+    get_all_faceit_ids_from_db
+from database import tables
 
 
 def read_player_info_from_file(nickname_faceit: str, directory: str = PLAYERS_FULL_STATISTIC_DIR) -> Dict:
@@ -26,7 +29,7 @@ def get_matches_count_from_faceit(player_faceit_id: str) -> int:
     return int(data['lifetime']['Matches'])
 
 
-def get_matches_count_from_json(nickname_faceit) -> int | bool:
+def get_matches_count_from_json(nickname_faceit) -> Union[int, bool]:
     """Получение количества матчей с faceit для определенного игрока"""
     stats = read_player_info_from_file(nickname_faceit)
     if stats:
@@ -34,13 +37,18 @@ def get_matches_count_from_json(nickname_faceit) -> int | bool:
     return False
 
 
-def check_matches_count(player_faceit_id: str, nickname_faceit: str) -> bool:
+def get_matches_count_from_db(faceit_id) -> int:
+    with Session() as session:
+        player = session.query(tables.Player).filter_by(faceit_id=faceit_id).first()
+        matches_count = session.query(tables.PlayerStats).filter_by(player_id=player.id).first().matches_count
+        return matches_count
+
+
+def check_matches_count(player_faceit_id: str) -> bool:
     """Проверяет изменилось ли количество матчей"""
-    matches_count_from_json = get_matches_count_from_json(nickname_faceit)
+    matches_count_from_db = get_matches_count_from_db(player_faceit_id)
     matches_count_from_faceit = get_matches_count_from_faceit(player_faceit_id)
-    if not matches_count_from_json:
-        return False
-    return matches_count_from_faceit > matches_count_from_json
+    return matches_count_from_faceit > matches_count_from_db
 
 
 def get_unix_time_lower_bound_of_query(period: int = CHECK_UPDATE_PERIOD) -> int:
@@ -74,16 +82,15 @@ def get_new_stats(player_faceit_id: str) -> Dict[str, Any]:
     return parsed_player_data
 
 
-def main():
-    for nickname_faceit in read_players_nickname_from_file():
-        print(f'Проверяется игрок {nickname_faceit}')
-        player_faceit_id = get_faciet_id(nickname_faceit)
-        if check_matches_count(player_faceit_id, nickname_faceit):
-            new_stats = get_new_stats(player_faceit_id)
-            write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
+if __name__ == '__main__':
+    for faceit_id in get_all_faceit_ids_from_db():
+        print(f'Проверяется игрок {faceit_id}')
+        if check_matches_count(faceit_id):
+            new_stats = get_new_stats(faceit_id)
+            with Session() as session:
+                add_to_db_player_info(session, new_stats['player'], faceit_id, update=True)
+                add_to_db_player_stats(session, new_stats['stats'], faceit_id, update=True)
+                add_to_db_matches(session, new_stats['matches'], faceit_id)
+            # write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
         else:
             print('Нет новых матчей')
-
-
-if __name__ == '__main__':
-    main()

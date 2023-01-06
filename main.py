@@ -1,13 +1,11 @@
 from typing import List, Dict
 
-from full_statistic import read_players_nickname_from_file, get_faciet_id, write_player_info_in_file, \
-    get_last_matches_stats
+from config import PLAYERS_FULL_STATISTIC_DIR
+from full_statistic import read_players_nickname_from_file, get_faciet_id, write_player_info_in_file
 from urls import create_urls
 from parse_data import collect_player_info
-from config import PLAYERS_FULL_STATISTIC_DIR
-from database.database import create_db, Session
+from database.database import create_db
 from database.service import add_to_database
-from database import tables
 
 
 def get_full_statistic() -> List[Dict]:
@@ -25,4 +23,5 @@ if __name__ == '__main__':
     create_db()
     full_statistic = get_full_statistic()
     for player in full_statistic:
+        write_player_info_in_file(player, directory=PLAYERS_FULL_STATISTIC_DIR)
         add_to_database(player)
