@@ -1,6 +1,8 @@
 import json
 from typing import List, Dict
 
+from database.database import create_db
+from database.service import add_to_database
 from urls import send_request, create_urls
 from parse_data import collect_player_info, is_wingman_mode, collect_all_matches_stats, parse_required_stats, \
     parse_required_player_info
@@ -92,9 +94,14 @@ def get_avg_stats():
 
 if __name__ == '__main__':
     # get_avg_stats()
+    create_db()
+    players_info = []
     for nickname in read_players_nickname_from_file():
         print(f'Обрабатывается игрок {nickname}')
         faciet_id = get_faciet_id(nickname)
         if faciet_id:
             player_info = collect_player_info(create_urls(faciet_id), player_id=faciet_id)
-            write_player_info_in_file(player_info, directory=PLAYERS_FULL_STATISTIC_DIR)
+            # write_player_info_in_file(player_info, directory=PLAYERS_FULL_STATISTIC_DIR)
+            players_info.append(player_info)
+    for player in players_info:
+        add_to_database(player)
