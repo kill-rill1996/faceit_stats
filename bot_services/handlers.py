@@ -23,6 +23,7 @@ async def get_nickname_faceit(message: types.Message, state: FSMContext):
 
     async with state.proxy() as data:
         if data['nickname_faceit'] not in get_all_players_nickname_from_db():
+            await message.answer('Идет сбор статистики, подождите...📈')
             player_full_stat = get_full_stats_for_player(data['nickname_faceit'])
             add_to_database(player_full_stat)
             # with open(f'{PLAYERS_LIST}', 'a') as f:
