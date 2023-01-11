@@ -6,7 +6,7 @@ from parse_data import is_wingman_mode, parse_required_stats, collect_all_matche
 from urls import send_request, create_urls
 from config import PLAYERS_FULL_STATISTIC_DIR, PLAYERS_NEW_STATS_DIR, CHECK_UPDATE_PERIOD
 from database.database import Session
-from database.service import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, \
+from database.services import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, \
     get_all_faceit_ids_from_db
 from database import tables
 

@@ -59,4 +59,10 @@ def get_all_faceit_ids_from_db() -> List[str]:
     return faceit_ids
 
 
+def get_all_players_nickname_from_db() -> List[str]:
+    with Session() as session:
+        faceit_nicknames = [player.faceit_nickname for player in session.query(tables.Player).all()]
+    return faceit_nicknames
+
+
 
