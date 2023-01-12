@@ -1,4 +1,5 @@
-from bot_services.bot_init import register_handlers, dp
+from bot_services.bot_init import dp
+from bot_services.handlers import register_handlers
 from aiogram import executor
 
 

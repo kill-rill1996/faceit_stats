@@ -347,3 +347,5 @@ pip-selfcheck.json
 /players_new_info
 /players_last_matches
 /avg_stats
+
+*.jpeg

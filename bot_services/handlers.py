@@ -1,11 +1,15 @@
+import requests
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram import types
+from aiogram import types, Dispatcher
+from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
+from aiogram.types import InputFile
+import os
 
-from config import PLAYERS_LIST
 from full_statistic import read_players_nickname_from_file, get_full_stats_for_player
 from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard
-from database.services import get_all_players_nickname_from_db, add_to_database
+from database.services import get_all_players_nickname_from_db, add_to_database, get_player_info
+from bot_services.bot_init import bot
 
 
 class FSMStart(StatesGroup):
@@ -48,5 +52,40 @@ async def all_players_handler(message: types.Message):
     await message.answer('Список игроков', reply_markup=create_players_inline_keyboard(all_nicknames))
 
 
+def get_player_avatar_path(player):
+    if os.path.exists(f'players_avatars/{player.faceit_nickname}.jpeg'):
+        return f'players_avatars/{player.faceit_nickname}.jpeg'
+    else:
+        if player.avatar:
+            response = requests.get(player.avatar)
+            with open(f'players_avatars/{player.faceit_nickname}.jpeg', 'wb') as fd:
+                fd.write(response.content)
+            return f'players_avatars/{player.faceit_nickname}.jpeg'
+        else:
+            return 'players_avatars/default.png'
+
+
+async def player_handler(callback: types.CallbackQuery):
+    player = get_player_info(callback.data)
+    player_avatar_path = get_player_avatar_path(player)
+    await bot.send_photo(callback.message.chat.id,
+                         photo=InputFile(player_avatar_path),
+                         caption=player.faceit_nickname)
+    await callback.answer()
+
+
+async def empty(message: types.Message):
+    await message.answer('Такой команды нет.')
+    await message.delete()
+
+
+def register_handlers(dispatcher: Dispatcher):
+    dispatcher.register_message_handler(cancel_handler, commands=['отмена'], state="*")
+    dispatcher.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state="*")
+    dispatcher.register_message_handler(greeting, commands=['start'], state=None)
+    dispatcher.register_message_handler(get_nickname_faceit, state=FSMStart.nickname)
+    dispatcher.register_message_handler(all_players_handler, Text(equals='Список игроков', ignore_case=True))
+    dispatcher.register_callback_query_handler(player_handler, lambda message: message.data in get_all_players_nickname_from_db())
+    dispatcher.register_message_handler(empty)
 
 
