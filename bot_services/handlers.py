@@ -7,7 +7,7 @@ from aiogram.types import InputFile
 import os
 
 from full_statistic import read_players_nickname_from_file, get_full_stats_for_player
-from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard
+from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard, player_keyboard
 from database.services import get_all_players_nickname_from_db, add_to_database, get_player_info
 from bot_services.bot_init import bot
 
@@ -68,9 +68,11 @@ def get_player_avatar_path(player):
 async def player_handler(callback: types.CallbackQuery):
     player = get_player_info(callback.data)
     player_avatar_path = get_player_avatar_path(player)
+    text_message = f'{player.faceit_nickname}\nМатчей - {player.stats.matches_count}\nWinrate - {player.stats.winrate}'
     await bot.send_photo(callback.message.chat.id,
                          photo=InputFile(player_avatar_path),
-                         caption=player.faceit_nickname)
+                         caption=text_message,
+                         reply_markup=player_keyboard)
     await callback.answer()
 
 

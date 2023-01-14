@@ -1,5 +1,5 @@
 from typing import Dict, List
-from sqlalchemy.orm import Session as Sa_session
+from sqlalchemy.orm import Session as Sa_session, joinedload
 
 from . import tables
 from .database import Session
@@ -68,8 +68,9 @@ def get_all_players_nickname_from_db() -> List[str]:
 def get_player_info(nickname: str) -> tables.Player:
     try:
         with Session() as session:
-            player_info = session.query(tables.Player).filter_by(faceit_nickname=nickname).first()
-            return player_info
+            player_info = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
+                .options(joinedload(tables.Player.stats)).first()
+        return player_info
     except:
         pass
 
