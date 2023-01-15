@@ -1,4 +1,6 @@
 import requests
+import aiohttp
+import aiofiles
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
@@ -52,6 +54,16 @@ async def all_players_handler(message: types.Message):
     await message.answer('Список игроков', reply_markup=create_players_inline_keyboard(all_nicknames))
 
 
+async def save_avatar(url, nickname):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                f = await aiofiles.open(f'players_avatars/{nickname}.jpeg')
+                response_b = await response.read()
+                await f.write(response_b)
+                await f.close()
+
+
 def get_player_avatar_path(player):
     if os.path.exists(f'players_avatars/{player.faceit_nickname}.jpeg'):
         return f'players_avatars/{player.faceit_nickname}.jpeg'
@@ -60,6 +72,7 @@ def get_player_avatar_path(player):
             response = requests.get(player.avatar)
             with open(f'players_avatars/{player.faceit_nickname}.jpeg', 'wb') as fd:
                 fd.write(response.content)
+            # await save_avatar(player.avatar, player.faceit_nickname)
             return f'players_avatars/{player.faceit_nickname}.jpeg'
         else:
             return 'players_avatars/default.png'
@@ -68,7 +81,9 @@ def get_player_avatar_path(player):
 async def player_handler(callback: types.CallbackQuery):
     player = get_player_info(callback.data)
     player_avatar_path = get_player_avatar_path(player)
-    text_message = f'{player.faceit_nickname}\nМатчей - {player.stats.matches_count}\nWinrate - {player.stats.winrate}'
+    text_message = f'{player.faceit_nickname}' \
+                   f'\nМатчей - {player.stats.matches_count}' \
+                   f'\nWinrate - {player.stats.winrate}%'
     await bot.send_photo(callback.message.chat.id,
                          photo=InputFile(player_avatar_path),
                          caption=text_message,
