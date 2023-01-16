@@ -96,7 +96,7 @@ async def player_handler(callback: types.CallbackQuery):
     await callback.answer()
 
 
-async def player_statistic_handler(callback: types.CallbackQuery):
+async def player_info_handler(callback: types.CallbackQuery):
     faceit_nickname = callback.data.split('_')[1]
     player = get_player_info(faceit_nickname)
     text_message = f'\nМатчей - {player.stats.matches_count}' \
@@ -137,7 +137,7 @@ def register_handlers(dispatcher: Dispatcher):
     dispatcher.register_message_handler(greeting, commands=['start'], state=None)
     dispatcher.register_message_handler(get_nickname_faceit, state=FSMStart.nickname)
     dispatcher.register_message_handler(all_players_handler, Text(equals='Список игроков', ignore_case=True))
-    dispatcher.register_callback_query_handler(player_statistic_handler,
+    dispatcher.register_callback_query_handler(player_info_handler,
                                                lambda callback: callback.data.split('_')[0] == 'info')
     dispatcher.register_callback_query_handler(player_handler, lambda callback: callback.data in get_all_players_nickname_from_db())
     # dispatcher.register_callback_query_handler(player_statistic_handler,
