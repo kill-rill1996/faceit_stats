@@ -71,7 +71,7 @@ def get_player_info(nickname: str) -> tables.Player:
             player_info = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
                 .options(joinedload(tables.Player.stats)).first()
         return player_info
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 

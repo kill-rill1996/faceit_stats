@@ -9,7 +9,8 @@ from aiogram.types import InputFile
 import os
 
 from full_statistic import read_players_nickname_from_file, get_full_stats_for_player
-from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard, player_keyboard
+from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard, \
+    create_players_stats_inline_keyboard
 from database.services import get_all_players_nickname_from_db, add_to_database, get_player_info
 from bot_services.bot_init import bot
 
@@ -79,15 +80,49 @@ def get_player_avatar_path(player):
 
 
 async def player_handler(callback: types.CallbackQuery):
-    player = get_player_info(callback.data)
+    """Вывод основной статистики и клавиатуры меню у конкретного игрока. Callback.data - <faceit_nickname>"""
+    faceit_nickname = callback.data
+    player = get_player_info(faceit_nickname)
     player_avatar_path = get_player_avatar_path(player)
     text_message = f'{player.faceit_nickname}' \
                    f'\nМатчей - {player.stats.matches_count}' \
-                   f'\nWinrate - {player.stats.winrate}%'
+                   f'\nWinrate - {player.stats.winrate}%' \
+                   # f'\nLVL - {player.faceit_lvl}'
+                   # f'\nLVL - {player.faceit_elo}'
     await bot.send_photo(callback.message.chat.id,
                          photo=InputFile(player_avatar_path),
                          caption=text_message,
-                         reply_markup=player_keyboard)
+                         reply_markup=create_players_stats_inline_keyboard(faceit_nickname))
+    await callback.answer()
+
+
+async def player_statistic_handler(callback: types.CallbackQuery):
+    faceit_nickname = callback.data.split('_')[1]
+    player = get_player_info(faceit_nickname)
+    text_message = f'\nМатчей - {player.stats.matches_count}' \
+                   f'\nПобед - {player.stats.wins_count}' \
+                   f'\nWinrate - {player.stats.winrate}%' \
+                   f'\nСыграно раундов - {player.stats.rounds_count}' \
+                   f'\nВсего убийств - {player.stats.kills_count}' \
+                   f'\nУбийств в голову - {player.stats.hs_count}' \
+                   f'\nПроцент убийств в голову - {player.stats.avg_hs_percent}%' \
+                   f'\nКоличество эйсов - {player.stats.aces}' \
+                   f'\nQuadro kills - {player.stats.quadro_kills}' \
+                   f'\nTriple kills - {player.stats.triple_kills}' \
+                   f'\nDouble kills - {player.stats.double_kills}' \
+                   f'\nОдиночных убийств - {player.stats.single_kills}' \
+                   f'\nКоличество смертей - {player.stats.deaths_count}' \
+                   f'\nПолучено MVP в раундах - {player.stats.mvps}' \
+                   f'\nСредние показатели:' \
+                   f'\nK/D - {player.stats.avg_kd}' \
+                   f'\nСреднее количество убийств - {player.stats.avg_kills}' \
+                   f'\nУбийств за раунд - {round(player.stats.avg_kpr, 2)}' \
+                   f'\nСмертей за раунд - {round(1 - player.stats.avg_spr, 2)}'
+                   # f'\nLVL - {player.faceit_vlv}' \
+                   # f'\nELO - {player.faceit_elo}'
+    await bot.send_message(callback.message.chat.id,
+                           text=text_message,
+                           reply_markup=create_players_stats_inline_keyboard(faceit_nickname))
     await callback.answer()
 
 
@@ -102,7 +137,13 @@ def register_handlers(dispatcher: Dispatcher):
     dispatcher.register_message_handler(greeting, commands=['start'], state=None)
     dispatcher.register_message_handler(get_nickname_faceit, state=FSMStart.nickname)
     dispatcher.register_message_handler(all_players_handler, Text(equals='Список игроков', ignore_case=True))
-    dispatcher.register_callback_query_handler(player_handler, lambda message: message.data in get_all_players_nickname_from_db())
+    dispatcher.register_callback_query_handler(player_statistic_handler,
+                                               lambda callback: callback.data.split('_')[0] == 'info')
+    dispatcher.register_callback_query_handler(player_handler, lambda callback: callback.data in get_all_players_nickname_from_db())
+    # dispatcher.register_callback_query_handler(player_statistic_handler,
+    #                                            lambda callback: callback.data.split('_')[0] == 'matches')
+    # dispatcher.register_callback_query_handler(player_statistic_handler,
+    #                                            lambda callback: callback.data.split('_')[0] == 'lastmatches')
     dispatcher.register_message_handler(empty)
 
 

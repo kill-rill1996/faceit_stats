@@ -13,7 +13,8 @@ class Player(Base):
     steam_nickname = Column(String)
     avatar = Column(String)
     country = Column(String)
-    faceit_lvl = Column(Integer)
+    # faceit_lvl = Column(Integer)
+    # faceit_elo = Column(Integer)
 
     stats = relationship('PlayerStats', uselist=False, backref='player')
     matches = relationship('Match', backref='player')
