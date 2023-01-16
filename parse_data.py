@@ -13,6 +13,7 @@ def parse_required_player_info(data: Dict) -> Dict[str, Any]:
         'steam_nickname': data['games']['csgo']['game_player_name'],
         'avatar': data['avatar'],
         'country': data['country'],
+        'faceit_lvl': data['skill_level']
     }
     return parsed_data
 
