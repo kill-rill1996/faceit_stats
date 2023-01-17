@@ -21,9 +21,9 @@ def create_players_inline_keyboard(players: List) -> InlineKeyboardMarkup:
 
 def create_players_stats_inline_keyboard(nickname: str) -> InlineKeyboardMarkup:
     """Для формирования динамической inline keyboard у конкретного игрока"""
-    stats_button = InlineKeyboardButton(text='Статистика', callback_data=f'info_{nickname}')
-    matches_button = InlineKeyboardButton(text='Матчи', callback_data=f'matches_{nickname}')
-    last_matches_stats_button = InlineKeyboardButton(text='За последние 20 матчей', callback_data=f'lastmatches_{nickname}')
+    stats_button = InlineKeyboardButton(text='Статистика', callback_data=f'info$&*{nickname}')
+    matches_button = InlineKeyboardButton(text='Матчи', callback_data=f'matches$&*{nickname}')
+    last_matches_stats_button = InlineKeyboardButton(text='За последние 20 матчей', callback_data=f'lastmatches$&*{nickname}')
     player_keyboard = InlineKeyboardMarkup(row_width=2)
     player_keyboard.add(stats_button, matches_button, last_matches_stats_button)
     return player_keyboard

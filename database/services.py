@@ -65,12 +65,22 @@ def get_all_players_nickname_from_db() -> List[str]:
     return faceit_nicknames
 
 
-def get_player_info(nickname: str) -> tables.Player:
+def get_player_info_from_db(nickname: str) -> tables.Player:
     try:
         with Session() as session:
             player_info = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
                 .options(joinedload(tables.Player.stats)).first()
         return player_info
+    except Exception as e:
+        print(e)
+
+
+def get_player_matches_from_db(nickname: str) -> List[tables.Match]:
+    try:
+        with Session() as session:
+            player_with_matches = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
+                .options(joinedload(tables.Player.matches)).first()
+            return player_with_matches
     except Exception as e:
         print(e)
 
