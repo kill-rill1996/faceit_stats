@@ -1,6 +1,5 @@
 import requests
 import aiohttp
-import aiofiles
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
@@ -10,7 +9,7 @@ import os
 
 from full_statistic import read_players_nickname_from_file, get_full_stats_for_player
 from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard, \
-    create_players_stats_inline_keyboard
+    create_players_stats_inline_keyboard, cancel_inline_keyboard
 from database.services import get_all_players_nickname_from_db, add_to_database, get_player_info_from_db, \
     get_player_matches_from_db
 from bot_services.bot_init import bot
@@ -54,16 +53,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def all_players_handler(message: types.Message):
     all_nicknames = get_all_players_nickname_from_db()
     await message.answer('Список игроков', reply_markup=create_players_inline_keyboard(all_nicknames))
-
-
-async def save_avatar(url, nickname):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                f = await aiofiles.open(f'players_avatars/{nickname}.jpeg')
-                response_b = await response.read()
-                await f.write(response_b)
-                await f.close()
 
 
 def get_player_avatar_path(player):
@@ -135,8 +124,8 @@ async def player_matches_handler(callback: types.CallbackQuery):
     matches = get_player_matches_from_db(faceit_nickname)
     text_message = f'Матчи {faceit_nickname}:'
     for count, match in enumerate(matches):
-        sub_text = f'\n{count + 1}. {match.map} | Убийств: {match.kills} | Смертей: {match.deaths} | Rating 1.0: {match.rating_1}' \
-                   f' | K/D: {match.kd} | Эйсов: {match.aces} | Quadro kills: {match.quadro_kills} | Triple kills: {match.triple_kills} | ' \
+        sub_text = f'\n{count + 1}. {match.map} | Rating 1.0: {match.rating_1} | K/D: {match.kd} | Убийств: {match.kills} | Смертей: {match.deaths} | ' \
+                   f'Эйсов: {match.aces} | Quadro kills: {match.quadro_kills} | Triple kills: {match.triple_kills} | ' \
                    f'Double kills: {match.double_kills} | HS: {match.hs_percent}% | MVP: {match.mvps}'
         text_message += sub_text
         if count != 19:
@@ -147,9 +136,44 @@ async def player_matches_handler(callback: types.CallbackQuery):
     await callback.answer()
 
 
+class FSMMatches(StatesGroup):
+    matches_count = State()
+
+
 async def player_last_stats(callback: types.CallbackQuery):
-    """Вывод статистики за последние n матчей. Callback.data - <lasts_tats$&*nickname>"""
-    pass
+    """Вывод статистики за последние n матчей. Callback.data - <last_stats$&*nickname>"""
+    await FSMMatches.matches_count.set()
+    msg = await callback.message.answer('Для получения статистики введите количество матчей.', reply_markup=cancel_inline_keyboard)
+    # запись в класс для последующего удаления
+    FSMMatches.message = msg
+
+
+async def last_n_matches_message_handler(request: types.Message | types.CallbackQuery, state: FSMContext):
+    """Вывод определенного количества матчей по количеству из сообщения"""
+    if type(request) == types.Message:
+        try:
+            int(request.text)
+            await FSMMatches.message.delete()
+            await request.answer(f'Ваше сообщение {request.text}')
+        except ValueError:
+            await request.reply('Необходимо ввести число')
+            return
+
+    elif type(request) == types.CallbackQuery:
+        await request.message.delete()
+        await bot.send_message(request.message.chat.id, f'Callback data - {request.data}')
+        await request.answer()
+
+    await state.finish()
+
+
+async def cancel_last_n_matches(callback: types.CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+    await callback.message.delete()
+    await callback.message.answer('Ок', reply_markup=main_keyboard)
 
 
 async def empty(message: types.Message):
@@ -162,14 +186,29 @@ def register_handlers(dispatcher: Dispatcher):
     dispatcher.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state="*")
     dispatcher.register_message_handler(greeting, commands=['start'], state=None)
     dispatcher.register_message_handler(get_nickname_faceit, state=FSMStart.nickname)
+
+    # Список всех игроков
     dispatcher.register_message_handler(all_players_handler, Text(equals='Список игроков', ignore_case=True))
+
+    # получение информации по определенному количеству матчей
+    dispatcher.register_callback_query_handler(cancel_last_n_matches,
+                                               lambda callback: callback.data == 'cancel',
+                                               state=FSMMatches.matches_count)
+    dispatcher.register_message_handler(last_n_matches_message_handler, state=FSMMatches.matches_count)
+    dispatcher.register_callback_query_handler(last_n_matches_message_handler,
+                                               lambda callback: callback.data.split('_')[0] == 'matchescount',
+                                               state=FSMMatches.matches_count)
+
+    # хэндлеры для игрока
     dispatcher.register_callback_query_handler(player_info_handler,
                                                lambda callback: callback.data.split('$&*')[0] == 'info')
     dispatcher.register_callback_query_handler(player_matches_handler,
                                                lambda callback: callback.data.split('$&*')[0] == 'matches')
     dispatcher.register_callback_query_handler(player_last_stats,
-                                               lambda callback: callback.data.split('$&*')[0] == 'last_stats')
+                                               lambda callback: callback.data.split('$&*')[0] == 'last_stats', state=None)
     dispatcher.register_callback_query_handler(player_handler, lambda callback: callback.data in get_all_players_nickname_from_db())
+
+    # незарегистрированные команды
     dispatcher.register_message_handler(empty)
 
 

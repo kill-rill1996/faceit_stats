@@ -29,4 +29,11 @@ def create_players_stats_inline_keyboard(nickname: str) -> InlineKeyboardMarkup:
     return player_keyboard
 
 
+cancel_inline_keyboard = InlineKeyboardMarkup(row_width=3)
+ten_matches_inline_button = InlineKeyboardButton(text='10 матчей', callback_data='matchescount_10')
+fif_matches_inline_button = InlineKeyboardButton(text='50 матчей', callback_data='matchescount_50')
+hund_matches_inline_button = InlineKeyboardButton(text='100 матчей', callback_data='matchescount_100')
+cancel_inline_button = InlineKeyboardButton(text='Отмена', callback_data='cancel')
+cancel_inline_keyboard.add(ten_matches_inline_button, fif_matches_inline_button, hund_matches_inline_button, cancel_inline_button)
+
 
