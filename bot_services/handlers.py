@@ -70,9 +70,7 @@ def get_player_avatar_path(player):
 
 async def player_handler(callback: types.CallbackQuery):
     """Вывод основной статистики и клавиатуры меню у конкретного игрока. Callback.data - <faceit_nickname>"""
-    print(callback.data)
     faceit_nickname = callback.data.split('$&*')[1]
-    print(faceit_nickname)
     player = get_player_info_from_db(faceit_nickname)
     player_avatar_path = get_player_avatar_path(player)
     text_message = f'{player.faceit_nickname}' \
