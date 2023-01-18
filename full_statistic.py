@@ -8,7 +8,7 @@ from parse_data import collect_player_info, is_wingman_mode, collect_all_matches
     parse_required_player_info
 from config import PLAYERS_LIST, PLAYERS_FULL_STATISTIC_DIR
 from custom_exceptions import PlayerInfoException
-
+from update_stats import read_player_info_from_file
 
 def get_faciet_id(nickname: str) -> str:
     """return faceit id by player nickname"""
@@ -106,6 +106,10 @@ if __name__ == '__main__':
     for nickname in read_players_nickname_from_file():
         print(f'Обрабатывается игрок {nickname}')
         player_info = get_full_stats_for_player(nickname)
+
+        # Костыль для записи в бд из файла
+        # player_info = read_player_info_from_file(nickname)
+
         if player_info:
             players_info.append(player_info)
     for player in players_info:

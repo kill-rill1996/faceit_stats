@@ -14,7 +14,7 @@ main_keyboard.add(players_button)
 def create_players_inline_keyboard(players: List) -> InlineKeyboardMarkup:
     """Для формирования динамической inline keyboard со списком всех игроков"""
     inline_keyboard = InlineKeyboardMarkup(row_width=3)
-    buttons = [InlineKeyboardButton(text=player, callback_data=player) for player in players]
+    buttons = [InlineKeyboardButton(text=player, callback_data=f'menu$&*{player}') for player in players]
     inline_keyboard.add(*buttons)
     return inline_keyboard
 
@@ -37,3 +37,8 @@ cancel_inline_button = InlineKeyboardButton(text='Отмена', callback_data='
 cancel_inline_keyboard.add(ten_matches_inline_button, fif_matches_inline_button, hund_matches_inline_button, cancel_inline_button)
 
 
+def create_back_inline_keyboard(nickname: str) -> InlineKeyboardMarkup:
+    back_inline_keyboard = InlineKeyboardMarkup(row_width=1)
+    back_button = InlineKeyboardButton(text='<<Назад', callback_data=f'{nickname}')
+    back_inline_keyboard.add(back_button)
+    return back_inline_keyboard
