@@ -39,6 +39,6 @@ cancel_inline_keyboard.add(ten_matches_inline_button, fif_matches_inline_button,
 
 def create_back_inline_keyboard(nickname: str) -> InlineKeyboardMarkup:
     back_inline_keyboard = InlineKeyboardMarkup(row_width=1)
-    back_button = InlineKeyboardButton(text='<<Назад', callback_data=f'{nickname}')
+    back_button = InlineKeyboardButton(text='<<Назад', callback_data=f'menu$&*{nickname}')
     back_inline_keyboard.add(back_button)
     return back_inline_keyboard
