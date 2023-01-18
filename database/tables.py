@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -59,6 +59,8 @@ class Match(Base):
     id = Column(Integer, primary_key=True)
     match_id = Column(String, index=True)
     map = Column(String)
+    # result = Column(Boolean)
+    # score = Column(String)
     rounds = Column(Integer)
     kills = Column(Integer)
     deaths = Column(Integer)

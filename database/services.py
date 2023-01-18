@@ -75,12 +75,14 @@ def get_player_info_from_db(nickname: str) -> tables.Player:
         print(e)
 
 
-def get_player_matches_from_db(nickname: str) -> List[tables.Match]:
+def get_player_matches_from_db(nickname: str, count: int = None) -> List[tables.Match]:
     try:
         with Session() as session:
             player_with_matches = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
                 .options(joinedload(tables.Player.matches)).first()
-            return player_with_matches
+            if count:
+                return player_with_matches.matches[:count]
+            return player_with_matches.matches[:20]
     except Exception as e:
         print(e)
 

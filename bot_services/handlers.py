@@ -116,7 +116,7 @@ async def player_info_handler(callback: types.CallbackQuery):
                    f'\nОдиночных убийств - {player.stats.single_kills}' \
                    f'\nКоличество смертей - {player.stats.deaths_count}' \
                    f'\nПолучено MVP в раундах - {player.stats.mvps}' \
-                   f'\nСредние показатели:' \
+                   f'\n\nСредние показатели:' \
                    f'\nK/D - {player.stats.avg_kd}' \
                    f'\nСреднее количество убийств - {player.stats.avg_kills}' \
                    f'\nУбийств за раунд - {round(player.stats.avg_kpr, 2)}' \
@@ -132,11 +132,24 @@ async def player_info_handler(callback: types.CallbackQuery):
 async def player_matches_handler(callback: types.CallbackQuery):
     """Вывод матчей игрока и клавиатуры меню у конкретного игрока. Callback.data - <matches$&*nickname>"""
     faceit_nickname = callback.data.split('$&*')[1]
-    player_witch_matches = get_player_matches_from_db(faceit_nickname)
-    text_message = [match.match_id for match in player_witch_matches.matches][:10]
+    matches = get_player_matches_from_db(faceit_nickname)
+    text_message = f'Матчи {faceit_nickname}:'
+    for count, match in enumerate(matches):
+        sub_text = f'\n{count + 1}. {match.map} | Убийств: {match.kills} | Смертей: {match.deaths} | Rating 1.0: {match.rating_1}' \
+                   f' | K/D: {match.kd} | Эйсов: {match.aces} | Quadro kills: {match.quadro_kills} | Triple kills: {match.triple_kills} | ' \
+                   f'Double kills: {match.double_kills} | HS: {match.hs_percent}% | MVP: {match.mvps}'
+        text_message += sub_text
+        if count != 19:
+            text_message += '\n'
+
     await bot.send_message(callback.message.chat.id, text=text_message,
                            reply_markup=create_players_stats_inline_keyboard(faceit_nickname))
     await callback.answer()
+
+
+async def player_last_stats(callback: types.CallbackQuery):
+    """Вывод статистики за последние n матчей. Callback.data - <lasts_tats$&*nickname>"""
+    pass
 
 
 async def empty(message: types.Message):
@@ -154,9 +167,9 @@ def register_handlers(dispatcher: Dispatcher):
                                                lambda callback: callback.data.split('$&*')[0] == 'info')
     dispatcher.register_callback_query_handler(player_matches_handler,
                                                lambda callback: callback.data.split('$&*')[0] == 'matches')
+    dispatcher.register_callback_query_handler(player_last_stats,
+                                               lambda callback: callback.data.split('$&*')[0] == 'last_stats')
     dispatcher.register_callback_query_handler(player_handler, lambda callback: callback.data in get_all_players_nickname_from_db())
-    # dispatcher.register_callback_query_handler(player_statistic_handler,
-    #                                            lambda callback: callback.data.split('_')[0] == 'lastmatches')
     dispatcher.register_message_handler(empty)
 
 

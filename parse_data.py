@@ -72,6 +72,20 @@ def calculate_rating_1_per_match(match_stats: Dict) -> float:
     return rating_1
 
 
+def get_match_winner(data: Dict, player_id: str) -> bool:
+    """Возвращает победу игрока - True или поражение - False"""
+    winner_id = data['rounds'][0]['round_stats']['Winner']
+    team1 = [player['player_id'] for player in data['rounds'][0]['teams'][0]['players']]
+    if data['rounds'][0]['teams'][0]['team_id'] == winner_id:
+        if player_id in team1:
+            return True
+        return False
+    else:
+        if player_id not in team1:
+            return True
+        return False
+
+
 def get_player_stats_in_match(data: Dict, player_id: str, full_statistic: Dict) -> Dict[str, Any]:
     """Собирает статистику переданного игрока за один матч"""
 
@@ -79,6 +93,8 @@ def get_player_stats_in_match(data: Dict, player_id: str, full_statistic: Dict) 
     for player in data['rounds'][0]['teams'][0]['players'] + data['rounds'][0]['teams'][1]['players']:
         if player['player_id'] == player_id:
             match_stats = {
+                'result': get_match_winner(data, player_id),
+                'score': data['rounds'][0]['round_stats']['Score'],
                 'aces': int(player['player_stats']["Penta Kills"]),
                 'quadro_kills': int(player['player_stats']["Quadro Kills"]),
                 'triple_kills': int(player['player_stats']["Triple Kills"]),
