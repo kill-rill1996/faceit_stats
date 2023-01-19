@@ -5,6 +5,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile
 import os
+from typing import Union, List, Dict
 
 from full_statistic import read_players_nickname_from_file, get_full_stats_for_player
 from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard, \
@@ -12,6 +13,7 @@ from bot_services.keyboards import cancel_keyboard, main_keyboard, create_player
 from database.services import get_all_players_nickname_from_db, add_to_database, get_player_info_from_db, \
     get_player_matches_from_db
 from bot_services.bot_init import bot
+from bot_services.services import get_stats_for_n_matches
 
 
 class FSMStart(StatesGroup):
@@ -141,19 +143,22 @@ class FSMMatches(StatesGroup):
 
 async def player_last_stats(callback: types.CallbackQuery):
     """Вывод статистики за последние n матчей. Callback.data - <last_stats$&*nickname>"""
-    await FSMMatches.matches_count.set()
+    state = await FSMMatches.matches_count.set()
     msg = await callback.message.answer('Для получения статистики введите количество матчей.', reply_markup=cancel_inline_keyboard)
     # запись в класс для последующего удаления
     FSMMatches.message = msg
+    # запись в nickname для поиска матчей игрока
+    FSMMatches.faceit_nickname = callback.data.split('$&*')[1]
 
 
-async def last_n_matches_message_handler(request: types.Message | types.CallbackQuery, state: FSMContext):
+async def last_n_matches_message_handler(request: Union[types.Message, types.CallbackQuery], state: FSMContext):
     """Вывод определенного количества матчей по количеству из сообщения"""
     if type(request) == types.Message:
         try:
-            int(request.text)
+            matches = get_player_matches_from_db(FSMMatches.faceit_nickname, count=int(request.text))
+            stats_for_n_matches = get_stats_for_n_matches([match.__dict__ for match in matches])
             await FSMMatches.message.delete()
-            await request.answer(f'Ваше сообщение {request.text}')
+            await request.answer(f'{stats_for_n_matches}')
         except ValueError:
             await request.reply('Необходимо ввести число')
             return
@@ -207,7 +212,8 @@ def register_handlers(dispatcher: Dispatcher):
                                                lambda callback: callback.data.split('$&*')[0] == 'last_stats', state=None)
 
     # хэгдлер для перехода к одному игроку
-    dispatcher.register_callback_query_handler(player_handler, lambda callback: callback.data.split('$&*')[1] in get_all_players_nickname_from_db())
+    dispatcher.register_callback_query_handler(player_handler, lambda callback: callback.data.split('$&*')[0] == 'menu'
+                                               and callback.data.split('$&*')[1] in get_all_players_nickname_from_db())
 
     # незарегистрированные команды
     dispatcher.register_message_handler(empty)

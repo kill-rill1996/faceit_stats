@@ -150,7 +150,8 @@ def is_wingman_mode(match) -> bool:
     return True if match['game_mode'] == 'Wingman' else False
 
 
-def collect_all_matches_stats(matches_ids: List[str], player_faceit_id: str, player_full_statistic: Dict) -> List[Dict]:
+def collect_all_matches_stats(matches_ids: List[str], player_faceit_id: str,
+                              player_full_statistic: Dict) -> List[Dict]:
     """Собирает статистику по каждому матчу и рассчитывает для него рейтинг 1.0 (с учетом всей статистии игрока.
     Возвращает [{}, {}, {}...]
     """
