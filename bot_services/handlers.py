@@ -165,7 +165,9 @@ async def last_n_matches_message_handler(request: Union[types.Message, types.Cal
 
     elif type(request) == types.CallbackQuery:
         await request.message.delete()
-        await bot.send_message(request.message.chat.id, f'Callback data - {request.data}')
+        matches = get_player_matches_from_db(FSMMatches.faceit_nickname, count=int(request.data.split('_')[1]))
+        stats_for_n_matches = get_stats_for_n_matches([match.__dict__ for match in matches])
+        await bot.send_message(request.message.chat.id, f'{stats_for_n_matches}')
         await request.answer()
 
     await state.finish()

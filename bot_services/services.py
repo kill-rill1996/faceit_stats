@@ -3,8 +3,8 @@ from typing import List, Dict
 
 def get_stats_for_n_matches(matches_data: List[Dict]) -> Dict:
     player_stat = {
-        'avg_deaths': sum([match['deaths'] for match in matches_data]) / len(matches_data),
-        'avg_kills': sum([match['kills'] for match in matches_data]) / len(matches_data),
+        'avg_deaths': round(sum([match['deaths'] for match in matches_data]) / len(matches_data), 2),
+        'avg_kills': round(sum([match['kills'] for match in matches_data]) / len(matches_data), 2),
         'kd': round(sum([match['kills'] for match in matches_data]) / sum([match['deaths'] for match in matches_data]), 2),
         'avg_rating_1': round(sum([match['rating_1'] for match in matches_data]) / len(matches_data), 2),
         'mvps': sum([match['mvps'] for match in matches_data]),
