@@ -6,7 +6,8 @@ from typing import Union
 
 from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard, \
     create_players_stats_inline_keyboard, cancel_inline_keyboard, create_back_inline_keyboard
-from bot_services.messages import get_message_for_player_info, get_text_for_player_matches_handler
+from bot_services.messages import get_message_for_player_info, get_text_for_player_matches_handler, \
+    get_message_for_player_main_info, get_msg_for_stats_last_n_matches
 from database.services import get_all_players_nickname_from_db, get_player_info_from_db, \
     get_player_matches_from_db
 from bot_services.bot_init import bot
@@ -38,15 +39,12 @@ async def player_handler(callback: types.CallbackQuery):
     faceit_nickname = callback.data.split('$&*')[1]
     player = get_player_info_from_db(faceit_nickname)
     player_avatar_path = get_player_avatar_path(player)
-    text_message = f'{player.faceit_nickname}' \
-                   f'\nLVL - {player.faceit_lvl}' \
-                   f'\nELO - {player.faceit_elo}' \
-                   f'\nМатчей - {player.stats.matches_count}' \
-                   f'\nWinrate - {player.stats.winrate}%'
+    text_message = get_message_for_player_main_info(player)
     await bot.send_photo(callback.message.chat.id,
                          photo=InputFile(player_avatar_path),
                          caption=text_message,
-                         reply_markup=create_players_stats_inline_keyboard(faceit_nickname))
+                         reply_markup=create_players_stats_inline_keyboard(faceit_nickname),
+                         parse_mode='html')
     await callback.answer()
 
 
@@ -57,7 +55,8 @@ async def player_info_handler(callback: types.CallbackQuery):
     text_message = get_message_for_player_info(faceit_nickname, player)
     await bot.send_message(callback.message.chat.id,
                            text=text_message,
-                           reply_markup=create_back_inline_keyboard(faceit_nickname))
+                           reply_markup=create_back_inline_keyboard(faceit_nickname),
+                           parse_mode='html')
     await callback.answer()
 
 
@@ -67,7 +66,8 @@ async def player_matches_handler(callback: types.CallbackQuery):
     matches = get_player_matches_from_db(faceit_nickname)
     text_message = get_text_for_player_matches_handler(faceit_nickname, matches)
     await bot.send_message(callback.message.chat.id, text=text_message,
-                           reply_markup=create_back_inline_keyboard(faceit_nickname))
+                           reply_markup=create_back_inline_keyboard(faceit_nickname),
+                           parse_mode='html')
     await callback.answer()
 
 
@@ -88,7 +88,8 @@ async def last_n_matches_message_handler(request: Union[types.Message, types.Cal
             matches = get_player_matches_from_db(FSMMatches.faceit_nickname, count=int(request.text))
             stats_for_n_matches = get_stats_for_n_matches([match.__dict__ for match in matches])
             await FSMMatches.message.delete()
-            await request.answer(f'{stats_for_n_matches}')
+            text_message = get_msg_for_stats_last_n_matches(stats_for_n_matches, len(matches), FSMMatches.faceit_nickname)
+            await request.answer(text_message, parse_mode='html')
         except ValueError:
             await request.reply('Необходимо ввести число')
             return
@@ -97,7 +98,8 @@ async def last_n_matches_message_handler(request: Union[types.Message, types.Cal
         await request.message.delete()
         matches = get_player_matches_from_db(FSMMatches.faceit_nickname, count=int(request.data.split('_')[1]))
         stats_for_n_matches = get_stats_for_n_matches([match.__dict__ for match in matches])
-        await bot.send_message(request.message.chat.id, f'{stats_for_n_matches}')
+        text_message = get_msg_for_stats_last_n_matches(stats_for_n_matches, len(matches), FSMMatches.faceit_nickname)
+        await bot.send_message(request.message.chat.id, text_message, parse_mode='html')
         await request.answer()
 
     await state.finish()
@@ -113,7 +115,7 @@ async def cancel_last_n_matches_handler(callback: types.CallbackQuery, state: FS
 
 
 async def empty(message: types.Message):
-    await message.answer('Такой команды нет.')
+    await message.answer('Такой команды нет.', parse_mode='html')
     await message.delete()
 
 
