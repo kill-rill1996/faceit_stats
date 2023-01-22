@@ -7,8 +7,9 @@ cancel_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 cancel_keyboard.add(cancel_button)
 
 players_button = KeyboardButton('Список игроков')
+add_player_button = KeyboardButton('Добавить нового игрока')
 main_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-main_keyboard.add(players_button)
+main_keyboard.add(players_button, add_player_button)
 
 
 def create_players_inline_keyboard(players: List) -> InlineKeyboardMarkup:
@@ -16,6 +17,8 @@ def create_players_inline_keyboard(players: List) -> InlineKeyboardMarkup:
     inline_keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = [InlineKeyboardButton(text=player, callback_data=f'menu$&*{player}') for player in players]
     inline_keyboard.add(*buttons)
+    best_players_button = InlineKeyboardButton(text='Лучшие игроки', callback_data=f'best_players$&*')
+    inline_keyboard.add(best_players_button)
     return inline_keyboard
 
 
@@ -42,3 +45,17 @@ def create_back_inline_keyboard(nickname: str) -> InlineKeyboardMarkup:
     back_button = InlineKeyboardButton(text='<<Назад', callback_data=f'menu$&*{nickname}')
     back_inline_keyboard.add(back_button)
     return back_inline_keyboard
+
+
+def create_best_players_inline_keyboard() -> InlineKeyboardMarkup:
+    best_plyaers_categories_keyboard = InlineKeyboardMarkup(row_width=2)
+    category_1 = InlineKeyboardButton(text='Rating 1.0', callback_data='best$&*rating')
+    category_2 = InlineKeyboardButton(text='Headshots', callback_data='best$&*hs')
+    category_3 = InlineKeyboardButton(text='K/D', callback_data='best$&*kd')
+    category_4 = InlineKeyboardButton(text='Aces', callback_data='best$&*aces')
+    category_5 = InlineKeyboardButton(text='ELO', callback_data='best$&*elo')
+    category_6 = InlineKeyboardButton(text='AVG Kills', callback_data='best$&*avg_kills')
+    cancel_button_best_players = InlineKeyboardButton(text='<<Назад', callback_data='best$&*cancel')
+    best_plyaers_categories_keyboard.add(category_1, category_2, category_3, category_4,
+                                         category_5, category_6, cancel_button_best_players)
+    return best_plyaers_categories_keyboard

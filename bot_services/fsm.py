@@ -7,4 +7,3 @@ class FSMStart(StatesGroup):
 
 class FSMMatches(StatesGroup):
     matches_count = State()
-

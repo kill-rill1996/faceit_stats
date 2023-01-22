@@ -42,3 +42,12 @@ def get_text_for_player_matches_handler(faceit_nickname, matches: List[tables.Ma
             message += '\n'
     return message
 
+
+def get_message_for_best_hs_players(players: List[tables.PlayerStats]) -> str:
+    """Возвращает 10 лучших игроков по avg_hs"""
+    message = f'<b>Игроки с лучшим hs:</b>'
+    for count, player in enumerate(players):
+        sub_text = f'\n{count + 1}. {player.player.faceit_nickname} - <b>{player.avg_hs_percent}%</b>'
+        message += sub_text
+    return message
+

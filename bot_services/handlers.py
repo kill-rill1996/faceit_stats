@@ -5,10 +5,12 @@ from aiogram.types import InputFile
 from typing import Union
 
 from bot_services.keyboards import cancel_keyboard, main_keyboard, create_players_inline_keyboard, \
-    create_players_stats_inline_keyboard, cancel_inline_keyboard, create_back_inline_keyboard
-from bot_services.messages import get_message_for_player_info, get_text_for_player_matches_handler
+    create_players_stats_inline_keyboard, cancel_inline_keyboard, create_back_inline_keyboard, \
+    create_best_players_inline_keyboard
+from bot_services.messages import get_message_for_player_info, get_text_for_player_matches_handler, \
+    get_message_for_best_hs_players
 from database.services import get_all_players_nickname_from_db, get_player_info_from_db, \
-    get_player_matches_from_db
+    get_player_matches_from_db, get_players_stats_from_db
 from bot_services.bot_init import bot
 from bot_services.services import get_stats_for_n_matches, get_player_avatar_path, get_nickname_faceit
 from bot_services.fsm import FSMStart, FSMMatches
@@ -27,10 +29,13 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await message.answer('Ок', reply_markup=main_keyboard)
 
 
-async def all_players_handler(message: types.Message):
+async def all_players_handler(message: Union[types.Message, types.CallbackQuery]):
     """Вывод списка всех игроков"""
     all_nicknames = get_all_players_nickname_from_db()
-    await message.answer('Список игроков', reply_markup=create_players_inline_keyboard(all_nicknames))
+    if type(message) == types.Message:
+        await message.answer('Список игроков', reply_markup=create_players_inline_keyboard(all_nicknames))
+    else:
+        await bot.send_message(message.message.chat.id, 'Список игроков', reply_markup=create_players_inline_keyboard(all_nicknames))
 
 
 async def player_handler(callback: types.CallbackQuery):
@@ -112,6 +117,16 @@ async def cancel_last_n_matches_handler(callback: types.CallbackQuery, state: FS
     await callback.message.answer('Ок', reply_markup=main_keyboard)
 
 
+async def bets_players_handlers(callback: types.CallbackQuery):
+    msg = await callback.message.answer('Выберите категорию', reply_markup=create_best_players_inline_keyboard())
+
+
+async def best_headshots_handler(callback: types.CallbackQuery):
+    players_list = get_players_stats_from_db(order_by='hs', limit_count=10)
+    message_answer = get_message_for_best_hs_players(players_list)
+    await callback.message.answer(message_answer, parse_mode='html')
+
+
 async def empty(message: types.Message):
     await message.answer('Такой команды нет.')
     await message.delete()
@@ -146,6 +161,12 @@ def register_handlers(dispatcher: Dispatcher):
     # хэгдлер для перехода к одному игроку
     dispatcher.register_callback_query_handler(player_handler, lambda callback: callback.data.split('$&*')[0] == 'menu'
                                                and callback.data.split('$&*')[1] in get_all_players_nickname_from_db())
+
+    # лучшие игроки
+    dispatcher.register_callback_query_handler(bets_players_handlers, lambda callback: callback.data == 'best_players$&*')
+    dispatcher.register_callback_query_handler(best_headshots_handler, lambda callback: callback.data == 'best$&*hs')
+    dispatcher.register_callback_query_handler(all_players_handler, lambda callback: callback.data == 'best$&*cancel')
+
 
     # незарегистрированные команды
     dispatcher.register_message_handler(empty)

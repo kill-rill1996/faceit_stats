@@ -6,7 +6,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from bot_services.keyboards import main_keyboard
-from database.services import get_all_players_nickname_from_db, add_to_database
+from database.services import get_all_players_nickname_from_db, add_to_database, get_players_stats_from_db
 from full_statistic import get_full_stats_for_player
 
 
@@ -56,3 +56,4 @@ async def get_nickname_faceit(message: types.Message, state: FSMContext):
             await message.answer('Ваш nickname уже был добавлен в базу.', reply_markup=main_keyboard)
 
     await state.finish()
+
