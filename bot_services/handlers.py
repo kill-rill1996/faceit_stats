@@ -8,7 +8,8 @@ from bot_services.keyboards import cancel_keyboard, main_keyboard, create_player
     create_players_stats_inline_keyboard, cancel_inline_keyboard, create_back_inline_keyboard, \
     create_best_players_inline_keyboard
 from bot_services.messages import get_message_for_player_info, get_text_for_player_matches_handler, \
-    get_message_for_player_main_info, get_msg_for_stats_last_n_matches, get_message_for_best_hs_players
+    get_message_for_player_main_info, get_msg_for_stats_last_n_matches, get_message_for_best_elo_players, \
+    create_message_for_best_players_in_category
 from database.services import get_all_players_nickname_from_db, get_player_info_from_db, \
     get_player_matches_from_db, get_players_stats_from_db
 from bot_services.bot_init import bot
@@ -119,13 +120,79 @@ async def cancel_last_n_matches_handler(callback: types.CallbackQuery, state: FS
 
 
 async def bets_players_handlers(callback: types.CallbackQuery):
-    msg = await callback.message.answer('Выберите категорию', reply_markup=create_best_players_inline_keyboard())
+    await callback.message.answer('Выберите категорию', reply_markup=create_best_players_inline_keyboard())
 
 
 async def best_headshots_handler(callback: types.CallbackQuery):
+    """Список игроков с лучшим показателем hs"""
     players_list = get_players_stats_from_db(order_by='hs', limit_count=10)
-    message_answer = get_message_for_best_hs_players(players_list)
-    await callback.message.answer(message_answer, parse_mode='html')
+    players_list_sorted = sorted(players_list, key=lambda player: player.avg_hs_percent, reverse=True)
+    message_answer = create_message_for_best_players_in_category(
+        title='<b>Игроки с лучшим hs:</b>',
+        high=50,
+        low=45,
+        players=players_list_sorted,
+        category='avg_hs_percent')
+    await callback.message.answer(message_answer, parse_mode='html', reply_markup=create_best_players_inline_keyboard())
+
+
+async def best_rating_handler(callback: types.CallbackQuery):
+    """Список игроков с лучшим показателем rating 1.0"""
+    players_list = get_players_stats_from_db(order_by='rating', limit_count=10)
+    players_list_sorted = sorted(players_list, key=lambda player: player.rating_1, reverse=True)
+    message_answer = create_message_for_best_players_in_category(
+        title='<b>Топ игроков по рейтингу 1.0:</b>',
+        high=1.10,
+        low=1.05,
+        players=players_list_sorted,
+        category='rating_1')
+    await callback.message.answer(message_answer, parse_mode='html', reply_markup=create_best_players_inline_keyboard())
+
+
+async def best_kd_handler(callback: types.CallbackQuery):
+    """Список игроков с лучшим показателем K/D"""
+    players_list = get_players_stats_from_db(order_by='kd', limit_count=10)
+    players_list_sorted = sorted(players_list, key=lambda player: player.avg_kd, reverse=True)
+    message_answer = create_message_for_best_players_in_category(
+        title='<b>Игроки с лучшим K/D:</b>',
+        high=1.15,
+        low=1.08,
+        players=players_list_sorted,
+        category='avg_kd')
+    await callback.message.answer(message_answer, parse_mode='html', reply_markup=create_best_players_inline_keyboard())
+
+
+async def best_aces_handler(callback: types.CallbackQuery):
+    """Список игроков с наибольшим количеством эйсов"""
+    players_list = get_players_stats_from_db(order_by='aces', limit_count=10)
+    players_list_sorted = sorted(players_list, key=lambda player: player.aces, reverse=True)
+    message_answer = create_message_for_best_players_in_category(
+        title='<b>Игроки с наибольшим количеством эйсов:</b>',
+        high=20,
+        low=10,
+        players=players_list_sorted,
+        category='aces')
+    await callback.message.answer(message_answer, parse_mode='html', reply_markup=create_best_players_inline_keyboard())
+
+
+async def best_avg_kills_handler(callback: types.CallbackQuery):
+    """Список игроков с наибольшим количеством средних убийств"""
+    players_list = get_players_stats_from_db(order_by='avg_kills', limit_count=10)
+    players_list_sorted = sorted(players_list, key=lambda player: player.avg_kills, reverse=True)
+    message_answer = create_message_for_best_players_in_category(
+        title='<b>Игроки с лучшим показателем среднего кол-ва убийств:</b>',
+        high=22,
+        low=19,
+        players=players_list_sorted,
+        category='avg_kills')
+    await callback.message.answer(message_answer, parse_mode='html', reply_markup=create_best_players_inline_keyboard())
+
+
+async def best_elo_handler(callback: types.CallbackQuery):
+    """Список игроков с наибольшим количеством elo"""
+    players_list = get_players_stats_from_db(order_by='elo', limit_count=10)
+    message_answer = get_message_for_best_elo_players(players_list)
+    await callback.message.answer(message_answer, parse_mode='html', reply_markup=create_best_players_inline_keyboard())
 
 
 async def empty(message: types.Message):
@@ -166,6 +233,11 @@ def register_handlers(dispatcher: Dispatcher):
     # лучшие игроки
     dispatcher.register_callback_query_handler(bets_players_handlers, lambda callback: callback.data == 'best_players$&*')
     dispatcher.register_callback_query_handler(best_headshots_handler, lambda callback: callback.data == 'best$&*hs')
+    dispatcher.register_callback_query_handler(best_rating_handler, lambda callback: callback.data == 'best$&*rating')
+    dispatcher.register_callback_query_handler(best_kd_handler, lambda callback: callback.data == 'best$&*kd')
+    dispatcher.register_callback_query_handler(best_aces_handler, lambda callback: callback.data == 'best$&*aces')
+    dispatcher.register_callback_query_handler(best_elo_handler, lambda callback: callback.data == 'best$&*elo')
+    dispatcher.register_callback_query_handler(best_avg_kills_handler, lambda callback: callback.data == 'best$&*avg_kills')
     dispatcher.register_callback_query_handler(all_players_handler, lambda callback: callback.data == 'best$&*cancel')
 
 

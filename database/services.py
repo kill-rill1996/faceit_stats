@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 from sqlalchemy.orm import Session as Sa_session, joinedload
 
 from . import tables
@@ -85,12 +85,15 @@ def get_player_matches_from_db(nickname: str, count: int = 10) -> List[tables.Ma
         print(e)
 
 
-def get_players_stats_from_db(order_by: str = None, limit_count: int = None) -> List[tables.PlayerStats]:
+def get_players_stats_from_db(order_by: str = None, limit_count: int = None) -> List[Union[tables.PlayerStats,
+                                                                                           tables.Player]]:
     """Get players full stats from db"""
     with Session() as session:
-        if order_by == 'hs':
-            players_stats = session.query(tables.PlayerStats).order_by(tables.PlayerStats.avg_hs_percent.desc()).limit(limit_count)
+        if order_by == 'elo':
+            players_stats = session.query(tables.Player).order_by(tables.Player.faceit_elo.desc()).limit(limit_count)
         else:
-            players_stats = session.query(tables.PlayerStats).all()
+            players_stats = session.query(tables.PlayerStats).limit(limit_count)
         return players_stats
+
+
 

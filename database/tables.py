@@ -46,6 +46,7 @@ class PlayerStats(Base):
     avg_kpr = Column(Float)
     avg_spr = Column(Float)
     avg_rmk = Column(Float)
+    rating_1 = Column(Float)
 
     player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
 

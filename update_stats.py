@@ -77,7 +77,7 @@ def get_new_stats(player_faceit_id: str) -> Dict[str, Any]:
     # сбор статистики новых матчей
     parsed_player_data['matches'] = collect_all_matches_stats(get_new_matches_ids(player_faceit_id),
                                                               player_faceit_id,
-                                                              parsed_player_data['stats'])
+                                                              )
     parsed_player_data['player'] = parse_required_player_info(send_request(urls[0][0]))
     return parsed_player_data
 

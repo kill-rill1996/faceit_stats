@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 
 from database import tables
 
@@ -55,12 +55,30 @@ def get_text_for_player_matches_handler(faceit_nickname: str, matches: List[tabl
     return message
 
 
-def get_message_for_best_hs_players(players: List[tables.PlayerStats]) -> str:
-    """Возвращает 10 лучших игроков по avg_hs"""
-    message = f'<b>Игроки с лучшим hs:</b>'
+def get_message_for_best_elo_players(players: List[tables.Player]) -> str:
+    """Возвращает 10 лучших игроков по кол-ву faciet elo"""
+    message = f'<b>Игроки с наибольшим elo:</b>'
     for count, player in enumerate(players):
-        sub_text = f'\n{count + 1}. {player.player.faceit_nickname} - <b>{player.avg_hs_percent}%</b>'
+        sub_text = f'\n{count + 1}. {player.faceit_nickname} - <b>{player.faceit_elo}</b>'
         message += sub_text
+    return message
+
+
+def create_message_for_best_players_in_category(title: str, high: Union[int, float], low: Union[int, float],
+                                                players: List[tables.PlayerStats], category: str) -> str:
+    """Возвращает сообщение с 10 лучшими игроками в указанной категории"""
+    message = title
+    for count, player in enumerate(players):
+        faceit_nickname = player.player.faceit_nickname
+        stat = player.__dict__[category]
+        sub_text = f'\n{count + 1}. {faceit_nickname} - <b>{stat}</b>'
+        if stat > high:
+            emoji = '🔥'
+        elif low <= stat <= high:
+            emoji = '✅'
+        else:
+            emoji = '❌'
+        message += (sub_text + emoji)
     return message
 
 
