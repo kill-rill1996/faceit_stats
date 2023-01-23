@@ -7,3 +7,9 @@ class FSMStart(StatesGroup):
 
 class FSMMatches(StatesGroup):
     matches_count = State()
+
+
+class FSMCompare(StatesGroup):
+    first_player = State()
+    second_player = State()
+

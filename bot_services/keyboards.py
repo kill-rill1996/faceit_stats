@@ -2,30 +2,38 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardBut
 from typing import List
 
 
-cancel_button = KeyboardButton('Отмена')
-cancel_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-cancel_keyboard.add(cancel_button)
-
-players_button = KeyboardButton('Список игроков')
-add_player_button = KeyboardButton('Добавить нового игрока')
-main_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-main_keyboard.add(players_button, add_player_button)
+def create_cancel_keyboard() -> ReplyKeyboardMarkup:
+    cancel_button = KeyboardButton('Отмена')
+    cancel_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    cancel_keyboard.add(cancel_button)
+    return cancel_keyboard
 
 
-def create_players_inline_keyboard(players: List) -> InlineKeyboardMarkup:
+def create_main_keyboard() -> ReplyKeyboardMarkup:
+    players_button = KeyboardButton('📃 Список игроков')
+    add_player_button = KeyboardButton('➕ Добавить нового игрока')
+    compare_player_button = KeyboardButton('📊 Сравнить игроков')
+    best_players_button = KeyboardButton('🔝 Лучшие игроки')
+    main_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    main_keyboard.add(players_button, add_player_button, compare_player_button, best_players_button)
+    return main_keyboard
+
+
+def create_players_inline_keyboard(players: List, best_players: bool = True) -> InlineKeyboardMarkup:
     """Для формирования динамической inline keyboard со списком всех игроков"""
     inline_keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = [InlineKeyboardButton(text=player, callback_data=f'menu$&*{player}') for player in players]
     inline_keyboard.add(*buttons)
-    best_players_button = InlineKeyboardButton(text='Лучшие игроки', callback_data=f'best_players$&*')
-    inline_keyboard.add(best_players_button)
+    if best_players:
+        best_players_button = InlineKeyboardButton(text='Лучшие игроки', callback_data=f'best_players$&*')
+        inline_keyboard.add(best_players_button)
     return inline_keyboard
 
 
 def create_players_stats_inline_keyboard(nickname: str) -> InlineKeyboardMarkup:
     """Для формирования динамической inline keyboard у конкретного игрока"""
     stats_button = InlineKeyboardButton(text='Полная статистика', callback_data=f'info$&*{nickname}')
-    matches_button = InlineKeyboardButton(text='Последние 10 матчей', callback_data=f'matches$&*{nickname}')
+    matches_button = InlineKeyboardButton(text='Последние 20 матчей', callback_data=f'matches$&*{nickname}')
     last_matches_stats_button = InlineKeyboardButton(text='Статистика за последние матчи', callback_data=f'last_stats$&*{nickname}')
     player_keyboard = InlineKeyboardMarkup(row_width=2)
     player_keyboard.add(stats_button, matches_button, last_matches_stats_button)

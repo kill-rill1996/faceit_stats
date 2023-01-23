@@ -43,13 +43,13 @@ def get_message_for_player_info(faceit_nickname: str, player: tables.Player) -> 
 
 
 def get_text_for_player_matches_handler(faceit_nickname: str, matches: List[tables.Match]) -> str:
-    """Возвращает сообщение со статистикой в 10 матчах"""
+    """Возвращает сообщение со статистикой в 20 матчах"""
     message = f'<b>Матчи {faceit_nickname}:</b>'
     for count, match in enumerate(matches):
-        sub_text = f'\n<b>{count + 1}.</b> {match.map} | Rating 1.0: {match.rating_1} | K/D: {match.kd} | Убийств: {match.kills} | Смертей: {match.deaths} | ' \
+        sub_text = f'\n<b>{count + 1}.</b> <b>{match.map}</b> {match.score} {match.result} | Rating 1.0: {match.rating_1} | K/D: {match.kd} | Убийств: {match.kills} | Смертей: {match.deaths} | ' \
                    f'Эйсов: {match.aces} | Quadro kills: {match.quadro_kills} | Triple kills: {match.triple_kills} | ' \
                    f'Double kills: {match.double_kills} | HS: {match.hs_percent}% | MVP: {match.mvps}'
-        message += sub_text
+        message += sub_text.replace('True', '✅').replace('False', '❌')
         if count != 9:
             message += '\n'
     return message
@@ -73,11 +73,11 @@ def create_message_for_best_players_in_category(title: str, high: Union[int, flo
         stat = player.__dict__[category]
         sub_text = f'\n{count + 1}. {faceit_nickname} - <b>{stat}</b>'
         if stat > high:
-            emoji = '🔥'
+            emoji = ' 🔥'
         elif low <= stat <= high:
-            emoji = '✅'
+            emoji = ' ✅'
         else:
-            emoji = '❌'
+            emoji = ' ❌'
         message += (sub_text + emoji)
     return message
 
@@ -94,12 +94,98 @@ def get_msg_for_stats_last_n_matches(data: Dict, matches_count: int, faceit_nick
                f'\nTriple kills - <b>{data["triple_kills"]}</b>' \
                f'\nDouble kills - <b>{data["double_kills"]}</b>' \
                f'\nКоличество убийств в голову - <b>{data["hs_count"]}</b>' \
-               f'\nПроцент убийств в голову - <b>{data["hs_percent"]}%</b>' \
+               f'\n{get_emojies_string(hs_percent=data["hs_percent"])}' \
                f'\nКоличество MVP - <b>{data["mvps"]}</b> ⭐️'
     return message
 
 
-def get_emojies_string(kd: float = None, rating: float = None, avg_kills: float = None) -> str:
+def get_message_for_compare(stat1: tables.Player, stat2: tables.Player) -> str:
+    message = f'Сравнение <b>{stat1.faceit_nickname}</b> и <b>{stat2.faceit_nickname}</b>\n'
+    # Матчи
+    if stat1.stats.matches_count > stat2.stats.matches_count:
+        message += f'\n<b>Матчи:</b> ✅ {stat1.stats.matches_count} - {stat2.stats.matches_count} ❌'
+    else:
+        message += f'\n<b>Матчи:</b> ❌ {stat1.stats.matches_count} - {stat2.stats.matches_count} ✅'
+    # Ело
+    if stat1.faceit_elo > stat2.faceit_elo:
+        message += f'\n<b>ELO:</b> ✅ {stat1.faceit_elo} - {stat2.faceit_elo} ❌'
+    else:
+        message += f'\n<b>ELO:</b> ❌ {stat1.faceit_elo} - {stat2.faceit_elo} ✅'
+    # LVL
+    if stat1.faceit_lvl > stat2.faceit_lvl:
+        message += f'\n<b>LVL:</b> ✅ {stat1.faceit_lvl} - {stat2.faceit_lvl} ❌'
+    elif stat1.faceit_lvl < stat2.faceit_lvl:
+        message += f'\n<b>LVL:</b> ❌ {stat1.faceit_lvl} - {stat2.faceit_lvl} ✅'
+    else:
+        message += f'\n<b>LVL:</b> {stat1.faceit_lvl} - {stat2.faceit_lvl}'
+    # Побед
+    if stat1.stats.wins_count > stat2.stats.wins_count:
+        message += f'\n<b>Побед:</b> ✅ {stat1.stats.wins_count} - {stat2.stats.wins_count} ❌'
+    else:
+        message += f'\n<b>Побед:</b> ❌ {stat1.stats.wins_count} - {stat2.stats.wins_count} ✅'
+    # Winrate
+    if stat1.stats.winrate > stat2.stats.winrate:
+        message += f'\n<b>Winrate:</b> ✅ {stat1.stats.winrate}% - {stat2.stats.winrate}% ❌'
+    else:
+        message += f'\n<b>Winrate:</b> ❌ {stat1.stats.winrate}% - {stat2.stats.winrate}% ✅'
+    # K/D
+    if stat1.stats.avg_kd > stat2.stats.avg_kd:
+        message += f'\n<b>Средний K/D:</b> ✅ {stat1.stats.avg_kd} - {stat2.stats.avg_kd} ❌'
+    else:
+        message += f'\n<b>Средний K/D:</b> ❌ {stat1.stats.avg_kd} - {stat2.stats.avg_kd} ✅'
+    # Убийств
+    if stat1.stats.kills_count > stat2.stats.kills_count:
+        message += f'\n<b>Всего убийств:</b> ✅ {stat1.stats.kills_count} - {stat2.stats.kills_count} ❌'
+    else:
+        message += f'\n<b>Всего убийств:</b> ❌ {stat1.stats.kills_count} - {stat2.stats.kills_count} ✅'
+    # HS%
+    if stat1.stats.avg_hs_percent > stat2.stats.avg_hs_percent:
+        message += f'\n<b>Процент HS:</b> ✅ {stat1.stats.avg_hs_percent}% - {stat2.stats.avg_hs_percent}% ❌'
+    elif stat1.stats.avg_hs_percent < stat2.stats.avg_hs_percent:
+        message += f'\n<b>Процент HS:</b> ❌ {stat1.stats.avg_hs_percent}% - {stat2.stats.avg_hs_percent}% ✅'
+    else:
+        message += f'\n<b>Процент HS:</b> {stat1.stats.avg_hs_percent}% - {stat2.stats.avg_hs_percent}%'
+    # Aces
+    if stat1.stats.aces > stat2.stats.aces:
+        message += f'\n<b>Количество эйсов:</b> ✅ {stat1.stats.aces} - {stat2.stats.aces} ❌'
+    else:
+        message += f'\n<b>Количество эйсов:</b> ❌ {stat1.stats.aces} - {stat2.stats.aces} ✅'
+    # Quadro kills
+    if stat1.stats.quadro_kills > stat2.stats.quadro_kills:
+        message += f'\n<b>Quadro kills:</b> ✅ {stat1.stats.quadro_kills} - {stat2.stats.quadro_kills} ❌'
+    else:
+        message += f'\n<b>Quadro kills:</b> ❌ {stat1.stats.quadro_kills} - {stat2.stats.quadro_kills} ✅'
+    # Triple kills
+    if stat1.stats.quadro_kills > stat2.stats.quadro_kills:
+        message += f'\n<b>Triple kills:</b> ✅ {stat1.stats.triple_kills} - {stat2.stats.triple_kills} ❌'
+    else:
+        message += f'\n<b>Triple kills:</b> ❌ {stat1.stats.triple_kills} - {stat2.stats.triple_kills} ✅'
+    # Double kills
+    if stat1.stats.quadro_kills > stat2.stats.quadro_kills:
+        message += f'\n<b>Double kills:</b> ✅ {stat1.stats.double_kills} - {stat2.stats.double_kills} ❌'
+    else:
+        message += f'\n<b>Double kills:</b> ❌ {stat1.stats.double_kills} - {stat2.stats.double_kills} ✅'
+    # Deaths
+    if stat1.stats.quadro_kills < stat2.stats.quadro_kills:
+        message += f'\n<b>Смертей:</b> ✅ {stat1.stats.deaths_count} - {stat2.stats.deaths_count} ❌'
+    else:
+        message += f'\n<b>Смертей:</b> ❌ {stat1.stats.deaths_count} - {stat2.stats.deaths_count} ✅'
+    # MVPs
+    if stat1.stats.quadro_kills > stat2.stats.quadro_kills:
+        message += f'\n<b>Количество MVP:</b> ✅ {stat1.stats.mvps} - {stat2.stats.mvps} ❌'
+    else:
+        message += f'\n<b>Количество MVP:</b> ❌ {stat1.stats.mvps} - {stat2.stats.mvps} ✅'
+    # AVG Kills
+    if stat1.stats.avg_kills > stat2.stats.avg_kills:
+        message += f'\n<b>Среднее кол-во убийств:</b> ✅ {stat1.stats.avg_kills} - {stat2.stats.avg_kills} ❌'
+    elif stat1.stats.avg_kills < stat2.stats.avg_kills:
+        message += f'\n<b>Среднее кол-во убийств:</b> ❌ {stat1.stats.avg_kills} - {stat2.stats.avg_kills} ✅'
+    else:
+        message += f'\n<b>Среднее кол-во убийств:</b> {stat1.stats.avg_kills} - {stat2.stats.avg_kills}'
+    return message
+
+
+def get_emojies_string(kd: float = None, rating: float = None, avg_kills: float = None, hs_percent: int = None) -> str:
     if kd:
         message = f'\nK/D - <b>{kd}</b> '
         if kd <= 1.0:
@@ -123,6 +209,14 @@ def get_emojies_string(kd: float = None, rating: float = None, avg_kills: float 
         elif 16.0 < avg_kills < 21.0:
             message += '✅'
         elif avg_kills >= 21:
+            message += '🔥'
+    elif hs_percent:
+        message = f'Процент убийств в голову - <b>{hs_percent}%</b>'
+        if hs_percent < 45:
+            message += '❌'
+        elif 45 <= hs_percent <= 50:
+            message += '✅'
+        elif hs_percent > 50:
             message += '🔥'
     else:
         message = ''
