@@ -75,7 +75,7 @@ def get_player_info_from_db(nickname: str) -> tables.Player:
         print(e)
 
 
-def get_player_matches_from_db(nickname: str, count: int = 10) -> List[tables.Match]:
+def get_player_matches_from_db(nickname: str, count: int = 20) -> List[tables.Match]:
     try:
         with Session() as session:
             player_with_matches = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
@@ -93,4 +93,6 @@ def get_players_stats_from_db(order_by: str = None, limit_count: int = None) -> 
         else:
             players_stats = session.query(tables.PlayerStats).all()
         return players_stats
+
+
 
