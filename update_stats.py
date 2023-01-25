@@ -7,7 +7,7 @@ from urls import send_request, create_urls
 from config import PLAYERS_FULL_STATISTIC_DIR, PLAYERS_NEW_STATS_DIR, CHECK_UPDATE_PERIOD
 from database.database import Session
 from database.services import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, \
-    get_all_faceit_ids_from_db
+    get_all_faceit_ids_from_db, update_rating
 from database import tables
 
 
@@ -91,6 +91,8 @@ if __name__ == '__main__':
                 add_to_db_player_info(session, new_stats['player'], faceit_id, update=True)
                 add_to_db_player_stats(session, new_stats['stats'], faceit_id, update=True)
                 add_to_db_matches(session, new_stats['matches'], faceit_id)
+                update_rating(faceit_id)
+
             # write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
         else:
             print('Нет новых матчей')

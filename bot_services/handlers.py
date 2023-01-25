@@ -11,16 +11,48 @@ from bot_services.messages import get_message_for_player_info, get_text_for_play
     get_message_for_player_main_info, get_msg_for_stats_last_n_matches, get_message_for_best_elo_players, \
     create_message_for_best_players_in_category, get_message_for_compare
 
-from database.services import get_all_players_nickname_from_db, get_player_info_from_db, \
-    get_player_matches_from_db, get_players_stats_from_db
+from database.services import get_all_players_nickname_from_db, get_player_info_from_db, get_player_matches_from_db, \
+    get_players_stats_from_db, add_to_database
 from bot_services.bot_init import bot
-from bot_services.services import get_stats_for_n_matches, get_player_avatar_path, get_nickname_faceit
+from bot_services.services import get_stats_for_n_matches, get_player_avatar_path
 from bot_services.fsm import FSMStart, FSMMatches, FSMCompare
+from full_statistic import get_full_stats_for_player
 
 
-async def greeting(message: types.Message):
+async def greeting_handler(message: types.Message):
+    await bot.send_sticker(message.chat.id, sticker='CAACAgIAAxkBAAEHcfhj0XjUTKUDZv9-oDbNw4l9VMrSJgAC-xgAAoXwIEhZtNXC9grBQy0E')
+    await message.answer('Hello', parse_mode='html', reply_markup=create_main_keyboard())
+
+
+async def add_new_player_handler(message: types.Message):
     await FSMStart.nickname.set()
-    await message.answer('Для получения статистики введите nickname faceit.', reply_markup=create_cancel_keyboard())
+    await message.answer('Для добавления аккаунта в базу данных и ежедневного обновления '
+                         'статистики введите 🔑<b>nickname faceit</b> (с учетом регистра)',
+                         reply_markup=create_cancel_keyboard(),
+                         parse_mode='html')
+
+
+async def save_nickname_handler(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['nickname_faceit'] = message.text
+
+    async with state.proxy() as data:
+        if data['nickname_faceit'] not in get_all_players_nickname_from_db():
+            await message.answer('Идет сбор статистики, подождите...📈️'
+                                 '\nЭто может занять до 10 минут в зависимости от вашего количества матчей')
+            try:
+                player_full_stat = get_full_stats_for_player(data['nickname_faceit'])
+                add_to_database(player_full_stat)
+                await message.answer('✅Ваш nickname добавлен в базу данных', reply_markup=create_main_keyboard())
+            except Exception as e:
+                print(e)
+                await message.answer('❌При добавлении произошла ошибка, проверьте корректно ли введен ваш nickname',
+                                     reply_markup=create_main_keyboard())
+                await bot.send_sticker(message.chat.id, sticker='CAACAgIAAxkBAAEHcfZj0Xa2M9fO0f8ZF4lyZvNE6KoeagAC8BUAAsoz2UvNOg9kKyyIti0E')
+        else:
+            await message.answer(f'<b>{message.text}</b> уже есть в базе', reply_markup=create_main_keyboard(), parse_mode='html')
+
+    await state.finish()
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -123,9 +155,6 @@ async def cancel_last_n_matches_handler(callback: types.CallbackQuery, state: FS
     await callback.message.answer('Ок', reply_markup=create_main_keyboard())
 
 
-# async def bets_players_handlers(callback: types.CallbackQuery):
-#     await callback.message.answer('Выберите категорию', reply_markup=create_best_players_inline_keyboard())
-
 async def best_players_handlers(request: Union[types.CallbackQuery, types.Message]):
     if type(request) == types.CallbackQuery:
         await request.message.answer('Выберите категорию', reply_markup=create_best_players_inline_keyboard())
@@ -137,6 +166,7 @@ async def best_headshots_handler(callback: types.CallbackQuery):
     """Список игроков с лучшим показателем hs"""
     players_list = get_players_stats_from_db(order_by='hs', limit_count=10)
     players_list_sorted = sorted(players_list, key=lambda player: player.avg_hs_percent, reverse=True)
+    await bot.send_sticker(callback.message.chat.id, sticker='CAACAgQAAxkBAAEHcfRj0XZHxl9aj9Y_8gbEAktfNgzlsgAC3hAAAqbxcR5kxlSjbBhzcS0E')
     message_answer = create_message_for_best_players_in_category(
         title='<b>Игроки с лучшим hs:</b>',
         high=50,
@@ -256,10 +286,14 @@ async def empty(message: types.Message):
 
 
 def register_handlers(dispatcher: Dispatcher):
+    # запуск бота, приветствие
+    dispatcher.register_message_handler(greeting_handler, commands=['start'])
+
+    # добавление нового игрока в базу данных
     dispatcher.register_message_handler(cancel_handler, commands=['отмена'], state="*")
     dispatcher.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state="*")
-    dispatcher.register_message_handler(greeting, commands=['start'], state=None)
-    dispatcher.register_message_handler(get_nickname_faceit, state=FSMStart.nickname)
+    dispatcher.register_message_handler(add_new_player_handler, Text(equals='➕ Добавить нового игрока'), state=None)
+    dispatcher.register_message_handler(save_nickname_handler, state=FSMStart.nickname)
 
     # Список игроков
     dispatcher.register_message_handler(all_players_handler, Text(equals='📃 Список игроков', ignore_case=True))

@@ -96,4 +96,15 @@ def get_players_stats_from_db(order_by: str = None, limit_count: int = None) -> 
         return players_stats
 
 
+def update_rating(faceit_id: str) -> None:
+    """Update rating 1.0 for player. Use after update stats"""
+    with Session() as session:
+        player_with_matches = session.query(tables.Player).filter_by(faceit_id=faceit_id)\
+            .options(joinedload(tables.Player.matches)).first()
+        avg_rating = round(sum(match.rating_1 for match in player_with_matches.matches) / len(player_with_matches.matches), 2)
+        return avg_rating
+
+
+
+
 
