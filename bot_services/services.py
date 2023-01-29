@@ -2,13 +2,6 @@ import os
 import requests
 from typing import List, Dict
 
-from aiogram import types
-from aiogram.dispatcher import FSMContext
-
-from bot_services.keyboards import create_main_keyboard
-from database.services import get_all_players_nickname_from_db, add_to_database, get_players_stats_from_db
-from full_statistic import get_full_stats_for_player
-
 
 def get_stats_for_n_matches(matches_data: List[Dict]) -> Dict:
     player_stat = {
@@ -38,22 +31,4 @@ def get_player_avatar_path(player):
             return f'players_avatars/{player.faceit_nickname}.jpeg'
         else:
             return 'players_avatars/default.png'
-
-
-async def get_nickname_faceit(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['nickname_faceit'] = message.text
-
-    async with state.proxy() as data:
-        if data['nickname_faceit'] not in get_all_players_nickname_from_db():
-            await message.answer('Идет сбор статистики, подождите...📈')
-            player_full_stat = get_full_stats_for_player(data['nickname_faceit'])
-            add_to_database(player_full_stat)
-            # with open(f'{PLAYERS_LIST}', 'a') as f:
-            #     f.write(f'\n{data["nickname_faceit"]}')
-            await message.answer('Ваш nickname добавлен в базу данных.', reply_markup=create_main_keyboard())
-        else:
-            await message.answer('Ваш nickname уже был добавлен в базу.', reply_markup=create_main_keyboard())
-
-    await state.finish()
 
