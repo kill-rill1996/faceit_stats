@@ -48,14 +48,18 @@ def get_avg_stats():
     data = {'avg_kpr': [],
             'avg_spr': [],
             'avg_rmk': []}
-    for player_nickname in read_players_nickname_from_file():
-        data['avg_kpr'].append(parse_required_stats(send_request(f'/players/{get_faciet_id(player_nickname)}/stats/csgo'))['avg_kpr'])
-        data['avg_spr'].append(parse_required_stats(send_request(f'/players/{get_faciet_id(player_nickname)}/stats/csgo'))['avg_spr'])
-        data['avg_rmk'].append(parse_required_stats(send_request(f'/players/{get_faciet_id(player_nickname)}/stats/csgo'))['avg_rmk'])
+    for count, player_faceit_id in enumerate(read_players_nickname_from_file(file_name='players_for_avg3.txt')):
+        print(f'Обрабатывается игрок {count}')
+        try:
+            data['avg_kpr'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/csgo'))['avg_kpr'])
+            data['avg_spr'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/csgo'))['avg_spr'])
+            data['avg_rmk'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/csgo'))['avg_rmk'])
+        except:
+            continue
     data['avg_kpr'] = sum(data['avg_kpr']) / len(data['avg_kpr'])
     data['avg_spr'] = sum(data['avg_spr']) / len(data['avg_spr'])
     data['avg_rmk'] = sum(data['avg_rmk']) / len(data['avg_rmk'])
-    with open('avg_stats/avg_stats.json', 'w') as f:
+    with open('avg_stats.json', 'w') as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 
@@ -72,16 +76,16 @@ if __name__ == '__main__':
     players_info = []
     for nickname in read_players_nickname_from_file():
         print(f'Обрабатывается игрок {nickname}')
-        # player_info = get_full_stats_for_player(nickname)
+        player_info = get_full_stats_for_player(nickname)
 
         # Костыль для записи в бд из файла
-        player_info = read_player_info_from_file(nickname)
+        # player_info = read_player_info_from_file(nickname)
 
         if player_info:
             players_info.append(player_info)
     for player in players_info:
-        # для записи данных в файл
-        # write_player_info_in_file(player, directory='players_info')
+    #     для записи данных в файл
+    #     write_player_info_in_file(player, directory='players_info')
 
         # для записи данных в базу данных
         add_to_database(player)
