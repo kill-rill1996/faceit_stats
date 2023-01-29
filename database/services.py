@@ -53,6 +53,12 @@ def add_to_database(data: Dict) -> None:
     print('Данные записаны.')
 
 
+def get_all_players_from_db() -> List[tables.Player]:
+    with Session() as session:
+        players = session.query(tables.Player).all()
+    return players
+
+
 def get_all_faceit_ids_from_db() -> List[str]:
     with Session() as session:
         faceit_ids = [player.faceit_id for player in session.query(tables.Player).all()]
@@ -61,7 +67,8 @@ def get_all_faceit_ids_from_db() -> List[str]:
 
 def get_all_players_nickname_from_db() -> List[str]:
     with Session() as session:
-        faceit_nicknames = [player.faceit_nickname for player in session.query(tables.Player).all()]
+        faceit_nicknames = [player.faceit_nickname for player in session.query(tables.Player)
+        .order_by(tables.Player.faceit_nickname).all()]
     return faceit_nicknames
 
 
@@ -80,7 +87,11 @@ def get_player_matches_from_db(nickname: str, count: int = 20) -> List[tables.Ma
         with Session() as session:
             player_with_matches = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
                 .options(joinedload(tables.Player.matches)).first()
-            return player_with_matches.matches[:count]
+            player = session.query(tables.Player).filter_by(faceit_nickname=nickname).first()
+            matches = session.query(tables.Match).filter_by(player_id=player.id) \
+                      .order_by(tables.Match.started_at.desc())[:count]
+            # return player_with_matches.matches[:count]
+            return matches
     except Exception as e:
         print(e)
 

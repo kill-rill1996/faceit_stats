@@ -72,7 +72,7 @@ def get_full_stats_for_player(nickname: str) -> Dict:
 
 if __name__ == '__main__':
     # get_avg_stats()
-    create_db()
+    # create_db()
     players_info = []
     for nickname in read_players_nickname_from_file():
         print(f'Обрабатывается игрок {nickname}')
@@ -85,7 +85,7 @@ if __name__ == '__main__':
             players_info.append(player_info)
     for player in players_info:
     #     для записи данных в файл
-    #     write_player_info_in_file(player, directory='players_info')
+        write_player_info_in_file(player, directory='players_info')
 
         # для записи данных в базу данных
-        add_to_database(player)
+        # add_to_database(player)

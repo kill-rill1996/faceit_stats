@@ -7,7 +7,7 @@ from urls import send_request, create_urls
 from config import PLAYERS_FULL_STATISTIC_DIR, PLAYERS_NEW_STATS_DIR, CHECK_UPDATE_PERIOD
 from database.database import Session
 from database.services import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, \
-    get_all_faceit_ids_from_db, update_rating
+    update_rating, get_all_players_from_db
 from database import tables
 
 
@@ -83,15 +83,15 @@ def get_new_stats(player_faceit_id: str) -> Dict[str, Any]:
 
 
 if __name__ == '__main__':
-    for faceit_id in get_all_faceit_ids_from_db():
-        print(f'Проверяется игрок {faceit_id}')
-        if check_matches_count(faceit_id):
-            new_stats = get_new_stats(faceit_id)
+    for player in get_all_players_from_db():
+        print(f'Проверяется игрок {player.faceit_nickname} - {player.faceit_id}')
+        if check_matches_count(player.faceit_id):
+            new_stats = get_new_stats(player.faceit_id)
             with Session() as session:
-                add_to_db_player_info(session, new_stats['player'], faceit_id, update=True)
-                add_to_db_player_stats(session, new_stats['stats'], faceit_id, update=True)
-                add_to_db_matches(session, new_stats['matches'], faceit_id)
-                update_rating(faceit_id)
+                add_to_db_player_info(session, new_stats['player'], player.faceit_id, update=True)
+                add_to_db_player_stats(session, new_stats['stats'], player.faceit_id, update=True)
+                add_to_db_matches(session, new_stats['matches'], player.faceit_id)
+                update_rating(player.faceit_id)
 
             # write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
         else:

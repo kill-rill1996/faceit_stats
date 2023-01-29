@@ -16,6 +16,7 @@ def get_stats_for_n_matches(matches_data: List[Dict]) -> Dict:
         'quadro_kills': sum([match['quadro_kills'] for match in matches_data]),
         'triple_kills': sum([match['triple_kills'] for match in matches_data]),
         'double_kills': sum([match['double_kills'] for match in matches_data]),
+        'kills': sum([match['kills'] for match in matches_data])
     }
     return player_stat
 

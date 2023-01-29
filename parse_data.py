@@ -133,6 +133,8 @@ def parse_matches_data(data: Dict, player_id: str, number: int) -> Dict[str, Any
     parsed_data = {
         'match_id': data['rounds'][0]['match_id'],
         'map': data['rounds'][0]['round_stats']['Map'],
+        # add unix time date match
+        'started_at': send_request(f'/matches/{data["rounds"][0]["match_id"]}')
     }
 
     player_stats_in_match = get_player_stats_in_match(data, player_id)

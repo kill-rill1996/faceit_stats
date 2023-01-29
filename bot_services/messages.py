@@ -35,7 +35,7 @@ def get_message_for_player_info(faceit_nickname: str, player: tables.Player) -> 
                f'\nКоличество смертей - <b>{player.stats.deaths_count}</b>' \
                f'\nКоличество MVP - <b>{player.stats.mvps}</b> ⭐️' \
                f'\n\n<b>Средние показатели:</b>' \
-               f'\n{get_emoji_string_new(player.stats.rating_1, 1.05, 1.10, "Рейтинг 1.0 - <b>{0}</b>")}'\
+               f'{get_emoji_string_new(player.stats.rating_1, 1.05, 1.10, "Рейтинг 1.0 - <b>{0}</b>")}'\
                f'{get_emoji_string_new(player.stats.avg_kd, 1.0, 1.20, "K/D - <b>{0}</b> ")}' \
                f'{get_emoji_string_new(player.stats.avg_kills, 16, 21, "Среднее количество убийств - <b>{0}</b> ")}' \
                f'\nУбийств за раунд - <b>{round(player.stats.avg_kpr, 2)}</b>' \
@@ -94,6 +94,7 @@ def get_msg_for_stats_last_n_matches(data: Dict, matches_count: int, faceit_nick
                f'\nQuadro kills - <b>{data["quadro_kills"]}</b>' \
                f'\nTriple kills - <b>{data["triple_kills"]}</b>' \
                f'\nDouble kills - <b>{data["double_kills"]}</b>' \
+               f'\nКоличество убийств - <b>{data["kills"]}</b>' \
                f'\nКоличество убийств в голову - <b>{data["hs_count"]}</b>' \
                f'{get_emoji_string_new(data["hs_percent"], 45, 50, "Процент убийств в голову - <b>{0}%</b> ")}' \
                f'\nКоличество MVP - <b>{data["mvps"]}</b> ⭐️'

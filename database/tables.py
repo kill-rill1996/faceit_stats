@@ -60,6 +60,7 @@ class Match(Base):
     id = Column(Integer, primary_key=True)
     match_id = Column(String, index=True)
     map = Column(String)
+    # started_at = Column(Integer)
     result = Column(Boolean)
     score = Column(String)
     rounds = Column(Integer)
