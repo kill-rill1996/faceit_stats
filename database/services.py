@@ -85,12 +85,9 @@ def get_player_info_from_db(nickname: str) -> tables.Player:
 def get_player_matches_from_db(nickname: str, count: int = 20) -> List[tables.Match]:
     try:
         with Session() as session:
-            player_with_matches = session.query(tables.Player).filter_by(faceit_nickname=nickname)\
-                .options(joinedload(tables.Player.matches)).first()
             player = session.query(tables.Player).filter_by(faceit_nickname=nickname).first()
             matches = session.query(tables.Match).filter_by(player_id=player.id) \
                       .order_by(tables.Match.started_at.desc())[:count]
-            # return player_with_matches.matches[:count]
             return matches
     except Exception as e:
         print(e)
