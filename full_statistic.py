@@ -70,10 +70,13 @@ def get_full_stats_for_player(nickname: str) -> Dict:
 if __name__ == '__main__':
     players_info = []
     for nickname in read_players_nickname_from_file():
-        print(f'Обрабатывается игрок {nickname}')
-        player_info = get_full_stats_for_player(nickname)
+        try:
+            print(f'Обрабатывается игрок {nickname}')
+            player_info = get_full_stats_for_player(nickname)
 
-        if player_info:
-            players_info.append(player_info)
+            if player_info:
+                players_info.append(player_info)
+        except:
+            pass
     for player in players_info:
         write_player_info_in_file(player, directory='players_info')
