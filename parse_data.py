@@ -139,7 +139,9 @@ def parse_matches_data(data: Dict, player_id: str, number: int) -> Dict[str, Any
 
     player_stats_in_match = get_player_stats_in_match(data, player_id)
     if player_stats_in_match:
-        return parsed_data | player_stats_in_match
+        for key, value in player_stats_in_match.items():
+            parsed_data[key] = value
+        return parsed_data
 
 
 def calculate_avg_rating_1(matches_stats: List[Dict]):
