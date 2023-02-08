@@ -6,8 +6,8 @@ from parse_data import is_wingman_mode, parse_required_stats, collect_all_matche
 from urls import send_request, create_urls
 from config import PLAYERS_FULL_STATISTIC_DIR, PLAYERS_NEW_STATS_DIR, CHECK_UPDATE_PERIOD
 from database.database import Session
-from database.services import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, \
-    update_rating, get_all_players_from_db
+from database.services import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, update_rating, \
+    get_all_players_from_db, get_player_mathces_id_from_db
 from database import tables
 
 
@@ -60,11 +60,13 @@ def get_unix_time_lower_bound_of_query(period: int = CHECK_UPDATE_PERIOD) -> int
     return lower_bound_of_query_timestamp
 
 
-def get_new_matches_ids(player_faceit_id: str) -> List[str]:
+def get_new_matches_ids(faceit_id: str) -> List[str]:
     """Получает list[id] новых матчей за указанный период"""
-    start_date = get_unix_time_lower_bound_of_query()
-    url = f'/players/{player_faceit_id}/history?game=csgo&from={start_date}'
-    return [match['match_id'] for match in send_request(url)['items'] if not is_wingman_mode(match)]
+    # start_date = get_unix_time_lower_bound_of_query()
+    url = f'/players/{faceit_id}/history?game=csgo'
+    matches_ids_from_db = get_player_mathces_id_from_db(faceit_id)
+    matches_ids_from_faceit = [match['match_id'] for match in send_request(url)['items'] if not is_wingman_mode(match)]
+    return list(set(matches_ids_from_faceit) - set(matches_ids_from_db))
 
 
 def get_new_stats(player_faceit_id: str) -> Dict[str, Any]:

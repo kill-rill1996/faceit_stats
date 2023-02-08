@@ -93,6 +93,17 @@ def get_player_matches_from_db(nickname: str, count: int = 20) -> List[tables.Ma
         print(e)
 
 
+def get_player_mathces_id_from_db(faceit_id: str) -> List[str]:
+    try:
+        with Session() as session:
+            player = session.query(tables.Player).filter_by(faceit_id=faceit_id).first()
+            matches = session.query(tables.Match).filter_by(player_id=player.id) \
+                      .order_by(tables.Match.started_at.desc())
+            return [match.match_id for match in matches]
+    except Exception as e:
+        print(e)
+
+
 def get_players_stats_from_db(order_by: str = None, limit_count: int = None) -> List[Union[tables.PlayerStats,
                                                                                            tables.Player]]:
     """Get players full stats from db"""
