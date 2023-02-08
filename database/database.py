@@ -1,10 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from config import DATABASE_NAME, DATABASE_PASSWORD, DATABASE_HOST, DATABASE_USER
+from config import DATABASE_NAME, DATABASE_PASSWORD, DATABASE_HOST, DATABASE_USER, SQLITE_URL
 
 
-engine = create_engine(f'postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}/{DATABASE_NAME}')
+# engine = create_engine(f'postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}/{DATABASE_NAME}')
+engine = create_engine(f'{SQLITE_URL}', connect_args={"check_same_thread": False})
 Session = sessionmaker(
     engine,
     autocommit=False,
