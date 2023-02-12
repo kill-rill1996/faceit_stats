@@ -98,3 +98,6 @@ if __name__ == '__main__':
             # write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
         else:
             print('Нет новых матчей')
+    with open('log.txt', 'a') as f:
+        f.write(f'Последне обновление {datetime.now()}')
+
