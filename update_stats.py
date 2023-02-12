@@ -99,5 +99,5 @@ if __name__ == '__main__':
         else:
             print('Нет новых матчей')
     with open('log.txt', 'a') as f:
-        f.write(f'Последне обновление {datetime.now()}')
+        f.write(f'Последне обновление {datetime.now()}\n')
 

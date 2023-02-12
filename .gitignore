@@ -351,3 +351,4 @@ pip-selfcheck.json
 *.jpeg
 players.txt
 *.sqlite3
+log.txt
