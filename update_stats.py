@@ -9,6 +9,7 @@ from database.database import Session
 from database.services import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, update_rating, \
     get_all_players_from_db, get_player_mathces_id_from_db
 from database import tables
+from config import LOG_DIRECTORY
 
 
 def read_player_info_from_file(nickname_faceit: str, directory: str = PLAYERS_FULL_STATISTIC_DIR) -> Dict:
@@ -98,6 +99,6 @@ if __name__ == '__main__':
             # write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
         else:
             print('Нет новых матчей')
-    with open('log.txt', 'a') as f:
+    with open(f'{LOG_DIRECTORY}log.txt', 'a') as f:
         f.write(f'Последне обновление {datetime.now()}\n')
 

@@ -35,3 +35,5 @@ AVG_RMK = 1.184536227491088
 
 # telegram
 API_BOT_TOKEN = os.getenv('TG_BOT_TOKEN')
+
+LOG_DIRECTORY = os.getenv('LOG_DIRECTORY')
