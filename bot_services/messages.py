@@ -4,6 +4,12 @@ from typing import List, Dict, Union
 from database import tables
 
 
+def get_greeting_message():
+    message = "Это Telegram-бот для получения статистики с faceit.com.\n" \
+              "Здесь можно получить подробную статистику об игроке по его никнейму faceit, а также cравнить показатели с другими игроками."
+    return message
+
+
 def get_message_for_player_main_info(player: tables.Player) -> str:
     """Возвращает сообщение с основной информацией об игроке"""
     message = f'<b>{player.faceit_nickname}</b>' \

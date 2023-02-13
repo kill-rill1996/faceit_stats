@@ -9,7 +9,7 @@ from bot_services.keyboards import create_cancel_keyboard, create_players_inline
     create_best_players_inline_keyboard, create_main_keyboard
 from bot_services.messages import get_message_for_player_info, get_text_for_player_matches_handler, \
     get_message_for_player_main_info, get_msg_for_stats_last_n_matches, get_message_for_best_elo_players, \
-    create_message_for_best_players_in_category, get_message_for_compare
+    create_message_for_best_players_in_category, get_message_for_compare, get_greeting_message
 
 from database.services import get_all_players_nickname_from_db, get_player_info_from_db, get_player_matches_from_db, \
     get_players_stats_from_db, add_to_database
@@ -21,7 +21,8 @@ from full_statistic import get_full_stats_for_player
 
 async def greeting_handler(message: types.Message):
     await bot.send_sticker(message.chat.id, sticker='CAACAgIAAxkBAAEHcfhj0XjUTKUDZv9-oDbNw4l9VMrSJgAC-xgAAoXwIEhZtNXC9grBQy0E')
-    await message.answer('Hello', parse_mode='html', reply_markup=create_main_keyboard())
+    msg = get_greeting_message()
+    await message.answer(msg, parse_mode='html', reply_markup=create_main_keyboard())
 
 
 async def add_new_player_handler(message: types.Message):
