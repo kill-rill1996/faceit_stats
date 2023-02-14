@@ -54,13 +54,11 @@ def get_text_for_player_matches_handler(faceit_nickname: str, matches: List[tabl
     """Возвращает сообщение со статистикой в 20 матчах"""
     message = f'<b>Матчи {faceit_nickname}:</b>'
     for count, match in enumerate(matches):
-        sub_text = f'\n<b>{datetime.datetime.fromtimestamp(match.started_at).strftime("%H:%M %d-%m-%Y")}</b>' \
+        sub_text = f'\n<b>{datetime.datetime.fromtimestamp(match.started_at).strftime("%H:%M %d.%m.%Y")}</b>' \
                     f'\n<b>{count + 1}.</b> <b>{match.map}</b> {match.score} {match.result} | Rating 1.0: {match.rating_1} | K/D: {match.kd} | Убийств: {match.kills} | Смертей: {match.deaths} | ' \
                    f'Эйсов: {match.aces} | Quadro kills: {match.quadro_kills} | Triple kills: {match.triple_kills} | ' \
                    f'Double kills: {match.double_kills} | HS: {match.hs_percent}% | MVP: {match.mvps}'
-        message += sub_text.replace('True', '✅').replace('False', '❌')
-        if count != 9:
-            message += '\n'
+        message += sub_text.replace('True', '✅').replace('False', '❌') + '\n'
     return message
 
 
