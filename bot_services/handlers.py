@@ -125,15 +125,16 @@ async def last_n_matches_message_handler(request: Union[types.Message, types.Cal
     """Вывод определенного количества матчей по количеству из сообщения"""
     if type(request) == types.Message:
         try:
-            matches = get_player_matches_from_db(FSMMatches.faceit_nickname, count=int(request.text))
+            matches = get_player_matches_from_db(FSMMatches.faceit_nickname, count=int(request.text))  # возможно ValueError
             stats_for_n_matches = get_stats_for_n_matches([match.__dict__ for match in matches])
             await FSMMatches.message.delete()
             text_message = get_msg_for_stats_last_n_matches(stats_for_n_matches, len(matches), FSMMatches.faceit_nickname)
             await request.answer(text_message, parse_mode='html',
                                  reply_markup=create_back_inline_keyboard(FSMMatches.faceit_nickname))
         except ValueError:
+            await FSMMatches.message.delete()
             await request.reply('Необходимо ввести число')
-            return
+            # return
 
     elif type(request) == types.CallbackQuery:
         await request.message.delete()
