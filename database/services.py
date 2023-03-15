@@ -124,6 +124,17 @@ def update_rating(faceit_id: str) -> None:
         return avg_rating
 
 
+def delete_player_from_db(faceit_nickname: str) -> None:
+    """Custom delete from db by faceit nickname"""
+    with Session() as session:
+        player = session.query(tables.Player).filter_by(faceit_nickname=faceit_nickname).first()
+        player_id = player.id
+        session.query(tables.PlayerStats).filter_by(player_id=player_id).delete()
+        session.query(tables.Match).filter_by(player_id=player_id).delete()
+        session.delete(player)
+        session.commit()
+
+
 
 
 
