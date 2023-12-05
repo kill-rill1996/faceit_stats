@@ -352,3 +352,4 @@ pip-selfcheck.json
 players.txt
 *.sqlite3
 log.txt
+nohup.out

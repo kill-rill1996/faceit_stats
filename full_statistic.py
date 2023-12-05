@@ -34,7 +34,7 @@ def read_players_nickname_from_file(file_name: str = PLAYERS_LIST) -> List[str]:
     """Получает перечень игроков из указанного файла"""
     try:
         with open(f'{file_name}', 'r') as f:
-            data = f.read().split('\n')
+            data = f.read().strip().split('\n')
     except Exception as e:
         print(f'Ошибка при чтении данных из файлов ({e})')
         data = []
