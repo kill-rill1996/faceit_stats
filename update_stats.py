@@ -26,7 +26,7 @@ def read_player_info_from_file(nickname_faceit: str, directory: str = PLAYERS_FU
 
 def get_matches_count_from_faceit(player_faceit_id: str) -> int:
     """Получение количества матчей с faceit для определенного игрока"""
-    data = send_request(f'/players/{player_faceit_id}/stats/csgo')
+    data = send_request(f'/players/{player_faceit_id}/stats/cs2')
     return int(data['lifetime']['Matches'])
 
 
@@ -64,7 +64,7 @@ def get_unix_time_lower_bound_of_query(period: int = CHECK_UPDATE_PERIOD) -> int
 def get_new_matches_ids(faceit_id: str) -> List[str]:
     """Получает list[id] новых матчей за указанный период"""
     # start_date = get_unix_time_lower_bound_of_query()
-    url = f'/players/{faceit_id}/history?game=csgo'
+    url = f'/players/{faceit_id}/history?game=cs2'
     matches_ids_from_db = get_player_mathces_id_from_db(faceit_id)
     matches_ids_from_faceit = [match['match_id'] for match in send_request(url)['items'] if not is_wingman_mode(match)]
     return list(set(matches_ids_from_faceit) - set(matches_ids_from_db))

@@ -48,9 +48,9 @@ def get_avg_stats():
     for count, player_faceit_id in enumerate(read_players_nickname_from_file(file_name='players_for_avg3.txt')):
         print(f'Обрабатывается игрок {count}')
         try:
-            data['avg_kpr'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/csgo'))['avg_kpr'])
-            data['avg_spr'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/csgo'))['avg_spr'])
-            data['avg_rmk'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/csgo'))['avg_rmk'])
+            data['avg_kpr'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/cs2'))['avg_kpr'])
+            data['avg_spr'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/cs2'))['avg_spr'])
+            data['avg_rmk'].append(parse_required_stats(send_request(f'/players/{player_faceit_id}/stats/cs2'))['avg_rmk'])
         except:
             continue
     data['avg_kpr'] = sum(data['avg_kpr']) / len(data['avg_kpr'])

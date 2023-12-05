@@ -10,11 +10,11 @@ def parse_required_player_info(data: Dict) -> Dict[str, Any]:
     parsed_data = {
         'faceit_id': data['player_id'],
         'faceit_nickname': data['nickname'],
-        'steam_nickname': data['games']['csgo']['game_player_name'],
+        'steam_nickname': data['games']['cs2']['game_player_name'],
         'avatar': data['avatar'],
         'country': data['country'],
-        'faceit_lvl': data['games']['csgo']['skill_level'],
-        'faceit_elo': data['games']['csgo']['faceit_elo']
+        'faceit_lvl': data['games']['cs2']['skill_level'],
+        'faceit_elo': data['games']['cs2']['faceit_elo']
     }
     return parsed_data
 
