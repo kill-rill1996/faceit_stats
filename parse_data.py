@@ -184,9 +184,16 @@ def collect_player_info(urls: List[Tuple], player_id: str) -> Dict:
         elif url[1] == 'match_history':
             # получение id всех матчей
             matches_ids = []
-            for i in range(parsed_player_data['stats']['matches_count'] // 100 + 1):
+
+            if parsed_player_data['stats']['matches_count'] >= 1100:
+                range_idx = 10
+            else:
+                range_idx = parsed_player_data['stats']['matches_count'] // 100 + 1
+
+            for i in range(range_idx):
                 matches_ids.extend(match['match_id'] for match in send_request(url[0] + f'&offset={i * 100}')['items']
                                    if not is_wingman_mode(match))
+
             # получение статистики по каждому матчу
             parsed_player_data['matches'] = collect_all_matches_stats(matches_ids, player_id)
 

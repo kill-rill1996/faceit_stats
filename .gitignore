@@ -353,3 +353,4 @@ players.txt
 *.sqlite3
 log.txt
 nohup.out
+cron_out.txt
