@@ -9,7 +9,6 @@ from database.database import Session
 from database.services import add_to_db_matches, add_to_db_player_info, add_to_db_player_stats, update_rating, \
     get_all_players_from_db, get_player_mathces_id_from_db
 from database import tables
-from config import LOG_DIRECTORY
 
 
 def read_player_info_from_file(nickname_faceit: str, directory: str = PLAYERS_FULL_STATISTIC_DIR) -> Dict:
@@ -88,20 +87,24 @@ def get_new_stats(player_faceit_id: str) -> Dict[str, Any]:
 if __name__ == '__main__':
     for player in get_all_players_from_db():
         print(f'Проверяется игрок {player.faceit_nickname} - {player.faceit_id}')
-        if check_matches_count(player.faceit_id):
-            try:
-                new_stats = get_new_stats(player.faceit_id)
-                with Session() as session:
-                    add_to_db_player_info(session, new_stats['player'], player.faceit_id, update=True)
-                    add_to_db_player_stats(session, new_stats['stats'], player.faceit_id, update=True)
-                    add_to_db_matches(session, new_stats['matches'], player.faceit_id)
-                    update_rating(player.faceit_id)
-            except Exception as e:
-                with open(f'{LOG_DIRECTORY}log.txt', 'a') as f:
-                    f.write(f'Error:\n{e}')
-            # write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
-        else:
-            print('Нет новых матчей')
-    with open(f'{LOG_DIRECTORY}log.txt', 'a') as f:
+        try:
+            if check_matches_count(player.faceit_id):
+                try:
+                    new_stats = get_new_stats(player.faceit_id)
+                    with Session() as session:
+                        add_to_db_player_info(session, new_stats['player'], player.faceit_id, update=True)
+                        add_to_db_player_stats(session, new_stats['stats'], player.faceit_id, update=True)
+                        add_to_db_matches(session, new_stats['matches'], player.faceit_id)
+                        update_rating(player.faceit_id)
+                except Exception as e:
+                    with open(f'/usr/src/app/log.txt', 'a') as f:
+                        f.write(f'Error:\n{e}')
+                # write_player_info_in_file(new_stats, directory=PLAYERS_NEW_STATS_DIR)
+            else:
+                print('Нет новых матчей')
+        except KeyError as e:
+            with open(f'/usr/src/app/log.txt', 'a') as f:
+                f.write(f'Error:\n{e}')
+    with open(f'/usr/src/app/log.txt', 'w') as f:
         f.write(f'Последне обновление {datetime.now()}\n')
 

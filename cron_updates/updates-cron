@@ -1,0 +1,1 @@
+* * * * * /usr/local/bin/python3 /usr/src/app/update_stats.py > /usr/src/app/cron_updates/cron_out.txt 2>&1
