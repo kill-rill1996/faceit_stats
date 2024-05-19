@@ -84,7 +84,6 @@ def get_new_stats(player_faceit_id: str) -> Dict[str, Any]:
 
 
 if __name__ == '__main__':
-    print(SQLITE_URL)
     for player in get_all_players_from_db():
         print(f'Проверяется игрок {player.faceit_nickname} - {player.faceit_id}')
         try:
